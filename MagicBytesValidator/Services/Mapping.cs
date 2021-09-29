@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using MagicBytesValidator.Exceptions;
+using MagicBytesValidator.Formats;
 using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Services
@@ -11,7 +12,8 @@ namespace MagicBytesValidator.Services
     {
         /// <inheritdoc />
         public IReadOnlyList<FileType> FileTypes => _fileTypes;
-        private readonly List<FileType> _fileTypes = new(); // TODO: Fill with defaults
+
+        private readonly IReadOnlyList<FileType> _fileTypes = FileTypeCollector.CollectFileTypes();
 
         /// <inheritdoc />
         public FileType? FindByMimeType(string mimeType)
@@ -22,8 +24,9 @@ namespace MagicBytesValidator.Services
             }
 
             return _fileTypes.FirstOrDefault(f =>
-                string.Equals(f.MimeType, mimeType, StringComparison.InvariantCultureIgnoreCase)
-            );
+                                                 string.Equals(f.MimeType, mimeType,
+                                                               StringComparison.InvariantCultureIgnoreCase)
+                                            );
         }
 
         /// <inheritdoc />
@@ -35,8 +38,9 @@ namespace MagicBytesValidator.Services
             }
 
             return _fileTypes.FirstOrDefault(
-                f => f.Extensions.Any(fe => string.Equals(fe, extension, StringComparison.InvariantCultureIgnoreCase))
-            );
+                                             f => f.Extensions.Any(fe => string.Equals(fe, extension,
+                                                                    StringComparison.InvariantCultureIgnoreCase))
+                                            );
         }
 
         /// <inheritdoc />
@@ -57,15 +61,15 @@ namespace MagicBytesValidator.Services
                 throw new DuplicateEntryException(nameof(fileType));
             }
 
-            _fileTypes.Add(fileType);
+            _fileTypes.ToList().Add(fileType);
         }
 
         /// <inheritdoc />
         public void Register(string mimeType, string[] extensions, byte[][] magicByteSequences)
         {
             Register(
-                new FileType(mimeType, extensions, magicByteSequences)
-            );
+                     new FileType(mimeType, extensions, magicByteSequences)
+                    );
         }
 
         /// <summary>
@@ -82,8 +86,8 @@ namespace MagicBytesValidator.Services
             }
 
             return _fileTypes.FirstOrDefault(
-                f => f.MagicByteSequences.Any(mb => mb.SequenceEqual(magicByteSequence))
-            );
+                                             f => f.MagicByteSequences.Any(mb => mb.SequenceEqual(magicByteSequence))
+                                            );
         }
     }
 }
