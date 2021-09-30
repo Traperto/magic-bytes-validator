@@ -8,17 +8,15 @@ namespace MagicBytesValidator.Services
 {
     public static class FileTypeCollector
     {
-        private static readonly IReadOnlyList<FileType> FileTypes = CollectFileTypes();
-
-        public static IReadOnlyList<FileType> CollectFileTypes()
+        public static IEnumerable<FileType> CollectFileTypes(Assembly? assembly = null)
         {
-            var assembly = typeof(FileTypeCollector).GetTypeInfo().Assembly;
+            assembly ??= typeof(FileTypeCollector).GetTypeInfo().Assembly;
 
             return assembly.GetTypes()
                            .Where(t => typeof(FileType).IsAssignableFrom(t))
                            .Where(t => !t.GetTypeInfo().IsAbstract)
                            .Where(t => t.GetConstructors().Any(c => c.GetParameters().Length == 0))
-                           .Select(t => Activator.CreateInstance(t))
+                           .Select(Activator.CreateInstance)
                            .OfType<FileType>()
                            .ToList();
         }

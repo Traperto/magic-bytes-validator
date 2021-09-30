@@ -10,7 +10,7 @@ using Xunit;
 
 namespace MagicBytesValidator.Tests
 {
-    public class BasicTest
+    public class IsValidTests
     {
         private readonly Validator _validator;
         private readonly FileType _fileTypeGif;
@@ -19,7 +19,7 @@ namespace MagicBytesValidator.Tests
         private readonly Gif _gif;
         private readonly Png _png;
 
-        public BasicTest()
+        public IsValidTests()
         {
             _gif = new Gif();
             _png = new Png();
