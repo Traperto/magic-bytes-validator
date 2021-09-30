@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using MagicBytesValidator.Exceptions;
 using MagicBytesValidator.Formats;
 using MagicBytesValidator.Models;
@@ -13,7 +14,7 @@ namespace MagicBytesValidator.Services
         /// <inheritdoc />
         public IReadOnlyList<FileType> FileTypes => _fileTypes;
 
-        private readonly IReadOnlyList<FileType> _fileTypes = FileTypeCollector.CollectFileTypes();
+        private readonly List<FileType> _fileTypes = FileTypeCollector.CollectFileTypes().ToList();
 
         /// <inheritdoc />
         public FileType? FindByMimeType(string mimeType)
@@ -46,30 +47,24 @@ namespace MagicBytesValidator.Services
         /// <inheritdoc />
         public void Register(FileType fileType)
         {
-            if (FindByMimeType(fileType.MimeType) is not null)
-            {
-                throw new DuplicateEntryException(nameof(fileType));
-            }
-
-            if (fileType.Extensions.Any(e => FindByExtension(e) is not null))
-            {
-                throw new DuplicateEntryException(nameof(fileType));
-            }
-
-            if (fileType.MagicByteSequences.Any(mbs => FindByMagicByteSequence(mbs) is not null))
-            {
-                throw new DuplicateEntryException(nameof(fileType));
-            }
-
-            _fileTypes.ToList().Add(fileType);
+            _fileTypes.Add(fileType);
         }
 
-        /// <inheritdoc />
-        public void Register(string mimeType, string[] extensions, byte[][] magicByteSequences)
+        public void Register(IReadOnlyList<FileType> fileTypes)
         {
-            Register(
-                     new FileType(mimeType, extensions, magicByteSequences)
-                    );
+            if (!fileTypes.Any())
+            {
+                return;
+            }
+
+            _fileTypes.AddRange(fileTypes);
+        }
+
+        public void Register(Assembly assembly)
+        {
+            var fileTypes = FileTypeCollector.CollectFileTypes(assembly).ToList();
+
+            _fileTypes.AddRange(fileTypes);
         }
 
         /// <summary>
