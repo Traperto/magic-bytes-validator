@@ -1,14 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <PackageId>MagicBytesValidator</PackageId>
+        <Title>traperto GmbH</Title>
+        <Description>Validate files based on mimetypes, extensions and magicbytes.</Description>
+        <Version>1.0.0</Version>
+        <Authors>Niklas Schmidt, Tobias Janssen</Authors>
+        <PackageProjectUrl>https://github.com/neon-JS/MagicBytesValidator/blob/main/README.md</PackageProjectUrl>
+        <PackageTags>mime mimetype mimetypes magic magicbyte magicbytes extension extensions file
+            fileextension traperto trapertoGmbh
+            TobiasJanssen NiklasSchmidt
+        </PackageTags>
+        <RepositoryUrl>https://github.com/neon-JS/MagicBytesValidator/</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <Company>traperto GmbH</Company>
+
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
         <TargetFramework>net5.0</TargetFramework>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <WarningsAsErrors>nullable</WarningsAsErrors>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2"/>
     </ItemGroup>
 
 </Project>
