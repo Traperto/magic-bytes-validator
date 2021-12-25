@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using MagicBytesValidator.Exceptions;
-using MagicBytesValidator.Formats;
 using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Services
@@ -65,24 +64,6 @@ namespace MagicBytesValidator.Services
             var fileTypes = FileTypeCollector.CollectFileTypes(assembly).ToList();
 
             _fileTypes.AddRange(fileTypes);
-        }
-
-        /// <summary>
-        /// Tries to find a known FileType by magic byte sequence.
-        /// </summary>
-        /// <param name="magicByteSequence">Magic byte sequence that should be searched for</param>
-        /// <returns>FileType that contains the given magic byte sequence</returns>
-        /// <exception cref="ArgumentEmptyException">When magicByteSequence is empty</exception>
-        private FileType? FindByMagicByteSequence(byte[] magicByteSequence)
-        {
-            if (!magicByteSequence.Any())
-            {
-                throw new ArgumentEmptyException(nameof(magicByteSequence));
-            }
-
-            return _fileTypes.FirstOrDefault(
-                                             f => f.MagicByteSequences.Any(mb => mb.SequenceEqual(magicByteSequence))
-                                            );
         }
     }
 }
