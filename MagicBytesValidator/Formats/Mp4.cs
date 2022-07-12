@@ -5,7 +5,7 @@ namespace MagicBytesValidator.Formats
     public class Mp4 : FileType
     {
         public Mp4() : base(
-                            "audio/mp4",
+                            "video/mp4",
                             new[] { "mp4" },
                             new[]
                             {
