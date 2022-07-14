@@ -67,6 +67,20 @@ namespace MagicBytesValidator.Tests
         }
 
         [Fact]
+        public async Task Should_work_with_offset()
+        {
+            var stream = new MemoryStream();
+            await stream.WriteAsync(new byte[] { 0,0,0,32,102,116,121,112,109,112,52,50,0,0,0,0,109} );
+            
+
+            // Act
+            var isValidMimeType = await _validator.IsValidAsync(stream, new Mp4(), CancellationToken.None);
+
+            // Assert
+            isValidMimeType.Should().BeTrue();
+        }
+
+        [Fact]
         public async Task Should_fail_incorrect_magicByte_sequence()
         {
             await _gifMemoryStream.WriteAsync(_png.MagicByteSequences.First());

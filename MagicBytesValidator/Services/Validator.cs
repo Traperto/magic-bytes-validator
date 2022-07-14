@@ -36,7 +36,7 @@ namespace MagicBytesValidator.Services
             var streamBytes = new byte[maxLengthFileTypeMagicByteSequences];
 
             var currentFileStreamPosition = fileStream.Position;
-            fileStream.Position = 0; /* Reset the stream to get to the first bytes. */
+            fileStream.Position = fileType.MagicByteOffset; /* Reset the stream to get to the first bytes. */
             
             await fileStream.ReadAsync(
                 streamBytes.AsMemory(0, maxLengthFileTypeMagicByteSequences),
