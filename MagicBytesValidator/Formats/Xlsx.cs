@@ -2,11 +2,11 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats
 {
-    public class Docx : FileType
+    public class Xlsx : FileType
     {
-        public Docx() : base(
-                             "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
-                             new[] { "docx" }, 
+        public Xlsx() : base(
+                             "application/vnd.openxmlformats-officedocument.wordprocessingml.sheet",
+                             new[] { "xlsx" },
                              new[]
                              {
                                  new byte[] { 50, 75, 3, 4 },
