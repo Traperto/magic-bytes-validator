@@ -5,7 +5,7 @@ namespace MagicBytesValidator.Formats
     public class Xlsx : FileType
     {
         public Xlsx() : base(
-                             "application/vnd.openxmlformats-officedocument.wordprocessingml.sheet",
+                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                              new[] { "xlsx" },
                              new[]
                              {
