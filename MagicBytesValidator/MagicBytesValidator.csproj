@@ -4,7 +4,7 @@
         <PackageId>MagicBytesValidator</PackageId>
         <Title>traperto GmbH</Title>
         <Description>Validate files based on mimetypes, extensions and magicbytes.</Description>
-        <Version>1.1.0</Version>
+        <Version>1.0.10</Version>
         <Authors>Niklas Schmidt, Tobias Janssen, Maximilian Breuker</Authors>
         <PackageProjectUrl>https://github.com/neon-JS/MagicBytesValidator/blob/main/README.md</PackageProjectUrl>
         <PackageTags>mime mimetype mimetypes magic magicbyte magicbytes extension extensions file
