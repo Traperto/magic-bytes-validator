@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -26,14 +27,14 @@ namespace MagicBytesValidator.Tests
             _gifMemoryStream = new MemoryStream();
 
             _validator = new Validator();
-            _fileTypeGif = _validator.Mapping.FindByExtension(_gif.Extensions.First());
-            _fileTypePng = _validator.Mapping.FindByMimeType(_png.MimeType);
+            _fileTypeGif = _validator.Mapping.FindByExtension(_gif.Extensions[0]) ?? throw new NullReferenceException();
+            _fileTypePng = _validator.Mapping.FindByMimeType(_png.MimeType) ?? throw new NullReferenceException();
         }
 
         [Fact]
         public async Task Should_validate()
         {
-            await _gifMemoryStream.WriteAsync(_gif.MagicByteSequences.First());
+            await _gifMemoryStream.WriteAsync(_gif.MagicByteSequences[0]);
 
             // Act
             var valid = await _validator.IsValidAsync(_gifMemoryStream, _fileTypeGif, CancellationToken.None);
@@ -45,7 +46,7 @@ namespace MagicBytesValidator.Tests
         [Fact]
         public async Task Should_fail_incorrect_extension()
         {
-            await _gifMemoryStream.WriteAsync(_gif.MagicByteSequences.First());
+            await _gifMemoryStream.WriteAsync(_gif.MagicByteSequences[0]);
 
             // Act
             var invalidExtension = await _validator.IsValidAsync(_gifMemoryStream, _fileTypePng, CancellationToken.None);
@@ -57,7 +58,7 @@ namespace MagicBytesValidator.Tests
         [Fact]
         public async Task Should_fail_incorrect_mimetype()
         {
-            await _gifMemoryStream.WriteAsync(_gif.MagicByteSequences.First());
+            await _gifMemoryStream.WriteAsync(_gif.MagicByteSequences[0]);
 
             // Act
             var inValidMimeType = await _validator.IsValidAsync(_gifMemoryStream, _fileTypePng, CancellationToken.None);
@@ -71,7 +72,6 @@ namespace MagicBytesValidator.Tests
         {
             var stream = new MemoryStream();
             await stream.WriteAsync(new byte[] { 0,0,0,32,102,116,121,112,109,112,52,50,0,0,0,0,109} );
-            
 
             // Act
             var isValidMimeType = await _validator.IsValidAsync(stream, new Mp4(), CancellationToken.None);
@@ -83,7 +83,7 @@ namespace MagicBytesValidator.Tests
         [Fact]
         public async Task Should_fail_incorrect_magicByte_sequence()
         {
-            await _gifMemoryStream.WriteAsync(_png.MagicByteSequences.First());
+            await _gifMemoryStream.WriteAsync(_png.MagicByteSequences[0]);
 
             // Act
             var invalidMagicByte = await _validator.IsValidAsync(_gifMemoryStream, _fileTypeGif, CancellationToken.None);

@@ -135,7 +135,7 @@ namespace MagicBytesValidator.Tests.Streams
             var sut = new StreamFileTypeProvider(mapping.Object);
 
             await Assert.ThrowsAsync<ArgumentNullException>(
-                async () => await sut.FindByMagicByteSequenceAsync(null, CancellationToken.None)
+                async () => await sut.FindByMagicByteSequenceAsync(null!, CancellationToken.None)
             );
         }
     }
