@@ -8,15 +8,15 @@ The existing `FileTypes` can be expanded in various ways.
 Install nuget package into your project
 
 ```powershell
-Install-Package MagicBytesValidator -Version 1.0.0
+Install-Package MagicBytesValidator -Version 1.0.14
 ```
 
 ```powershell
-dotnet add package MagicBytesValidator --version 1.0.0
+dotnet add package MagicBytesValidator --version 1.0.14
 ```
 
 ```powershell
-<PackageReference Include="MagicBytesValidator" Version="1.0.0" />
+<PackageReference Include="MagicBytesValidator" Version="1.0.14" />
 ```
 
 ### How to use it?
