@@ -5,13 +5,13 @@ namespace MagicBytesValidator.Formats
     public class Bin : FileType
     {
         public Bin() : base(
-            "application/octet-stream",
-            new[] {"bin", "file", "com", "class", "ini"},
+            new[] { "application/octet-stream" },
+            new[] { "bin", "file", "com", "class", "ini" },
             new[]
             {
-                new byte[] {83, 80, 48, 49},
-                new byte[] {201},
-                new byte[] {202, 254, 186, 190}
+                new byte[] { 83, 80, 48, 49 },
+                new byte[] { 201 },
+                new byte[] { 202, 254, 186, 190 }
             })
         {
         }

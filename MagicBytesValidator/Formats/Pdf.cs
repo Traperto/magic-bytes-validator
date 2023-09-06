@@ -5,7 +5,7 @@ namespace MagicBytesValidator.Formats
     public class Pdf : FileType
     {
         public Pdf() : base(
-            "application/pdf",
+            new[] { "application/pdf" },
             new[] { "pdf" },
             new[]
             {

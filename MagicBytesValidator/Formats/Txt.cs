@@ -8,14 +8,14 @@ namespace MagicBytesValidator.Formats
     public class Txt : FileType
     {
         public Txt() : base(
-            "text/plain",
-            new[] {"txt"},
+            new[] { "text/plain" },
+            new[] { "txt" },
             new[]
             {
-                new byte[] {239, 187, 191},
-                new byte[] {255, 254},
-                new byte[] {254, 255},
-                new byte[] {255, 254, 0, 0}
+                new byte[] { 239, 187, 191 },
+                new byte[] { 255, 254 },
+                new byte[] { 254, 255 },
+                new byte[] { 255, 254, 0, 0 }
             })
         {
         }

@@ -5,11 +5,11 @@ namespace MagicBytesValidator.Formats
     public class Pgm : FileType
     {
         public Pgm() : base(
-            "image/x-portable-graymap",
-            new[] {"pgm"},
+            new[] { "image/x-portable-graymap" },
+            new[] { "pgm" },
             new[]
             {
-                new byte[] {80, 50, 10}
+                new byte[] { 80, 50, 10 }
             })
         {
         }

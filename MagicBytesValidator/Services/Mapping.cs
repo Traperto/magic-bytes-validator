@@ -23,10 +23,8 @@ namespace MagicBytesValidator.Services
                 throw new ArgumentEmptyException(nameof(mimeType));
             }
 
-            return _fileTypes.FirstOrDefault(f =>
-                                                 string.Equals(f.MimeType, mimeType,
-                                                               StringComparison.InvariantCultureIgnoreCase)
-                                            );
+            return _fileTypes
+                .FirstOrDefault(f => f.MimeTypes.Contains(mimeType));
         }
 
         /// <inheritdoc />
@@ -38,9 +36,9 @@ namespace MagicBytesValidator.Services
             }
 
             return _fileTypes.FirstOrDefault(
-                                             f => f.Extensions.Any(fe => string.Equals(fe, extension,
-                                                                    StringComparison.InvariantCultureIgnoreCase))
-                                            );
+                f => f.Extensions.Any(fe => string.Equals(fe, extension,
+                    StringComparison.InvariantCultureIgnoreCase))
+            );
         }
 
         /// <inheritdoc />

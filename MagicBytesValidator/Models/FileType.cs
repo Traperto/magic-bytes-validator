@@ -13,7 +13,7 @@ namespace MagicBytesValidator.Models
         /// MIME type of a file
         /// <example>"image/gif"</example>
         /// </summary>
-        public string MimeType { get; }
+        public string[] MimeTypes { get; }
 
         /// <summary>
         /// List of file extensions for a type
@@ -32,18 +32,18 @@ namespace MagicBytesValidator.Models
         /// <summary>
         /// Creates a new FileType
         /// </summary>
-        /// <param name="mimeType">MIME type of the new file type</param>
+        /// <param name="mimeTypes">MIME types of the new file type</param>
         /// <param name="extensions">File extensions of the new file type</param>
         /// <param name="magicByteSequences">Magic byte sequences of the new file type</param>
         /// <param name="magicByteOffset">Offset sequences</param>
         /// <exception cref="ArgumentEmptyException">
         /// When any property of FileType is empty or contains empty values
         /// </exception>
-        public FileType(string mimeType, string[] extensions, byte[][] magicByteSequences, uint magicByteOffset = 0)
+        public FileType(string[] mimeTypes, string[] extensions, byte[][] magicByteSequences, uint magicByteOffset = 0)
         {
-            if (string.IsNullOrEmpty(mimeType))
+            if (!mimeTypes.Any() || mimeTypes.Any(string.IsNullOrEmpty))
             {
-                throw new ArgumentEmptyException(nameof(mimeType));
+                throw new ArgumentEmptyException(nameof(mimeTypes));
             }
 
             if (!extensions.Any() || extensions.Any(string.IsNullOrEmpty))
@@ -56,7 +56,7 @@ namespace MagicBytesValidator.Models
                 throw new ArgumentEmptyException(nameof(magicByteSequences));
             }
 
-            MimeType = mimeType;
+            MimeTypes = mimeTypes;
             Extensions = extensions;
             MagicByteSequences = magicByteSequences;
             MagicByteOffset = magicByteOffset;

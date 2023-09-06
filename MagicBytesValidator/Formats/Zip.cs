@@ -5,11 +5,11 @@ namespace MagicBytesValidator.Formats
     public class Zip : FileType
     {
         public Zip() : base(
-            "application/zip",
-            new[] {"zip"},
+            new[] { "application/zip", "application/x-zip-compressed" },
+            new[] { "zip" },
             new[]
             {
-                new byte[] {80, 75, 3, 4}
+                new byte[] { 80, 75, 3, 4 }
             })
         {
         }

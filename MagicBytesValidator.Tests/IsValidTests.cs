@@ -28,7 +28,7 @@ namespace MagicBytesValidator.Tests
 
             _validator = new Validator();
             _fileTypeGif = _validator.Mapping.FindByExtension(_gif.Extensions[0]) ?? throw new NullReferenceException();
-            _fileTypePng = _validator.Mapping.FindByMimeType(_png.MimeType) ?? throw new NullReferenceException();
+            _fileTypePng = _validator.Mapping.FindByMimeType(_png.MimeTypes.First()) ?? throw new NullReferenceException();
         }
 
         [Fact]

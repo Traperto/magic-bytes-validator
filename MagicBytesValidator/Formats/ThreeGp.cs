@@ -8,11 +8,11 @@ namespace MagicBytesValidator.Formats
     public class ThreeGp : FileType
     {
         public ThreeGp() : base(
-            "video/3gpp",
-            new[] {"3gp"},
+            new[] { "video/3gpp" },
+            new[] { "3gp" },
             new[]
             {
-                new byte[] {102, 116, 121, 112, 51, 103}
+                new byte[] { 102, 116, 121, 112, 51, 103 }
             })
         {
         }

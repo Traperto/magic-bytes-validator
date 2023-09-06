@@ -5,11 +5,11 @@ namespace MagicBytesValidator.Formats
     public class Gz : FileType
     {
         public Gz() : base(
-            "application/gzip",
-            new[] {"gz"},
+            new[] { "application/gzip" },
+            new[] { "gz" },
             new[]
             {
-                new byte[] {31, 139}
+                new byte[] { 31, 139 }
             })
         {
         }
