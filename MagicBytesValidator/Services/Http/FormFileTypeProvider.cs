@@ -50,7 +50,7 @@ namespace MagicBytesValidator.Services.Http
                 /* This can only occur if the given form file has a file name and its extension indicates a different
                  * MIME type as (also given) Content-Type. This *can* be an indicator that someone is trying to
                  * mess with us. As we are a bit paranoid and also the file type is not unambiguous, we'll throw. */
-                throw new MimeTypeMismatchException(fileType.MimeTypes.First(), formFile.ContentType);
+                throw new MimeTypeMismatchException(string.Join(",", fileType.MimeTypes), formFile.ContentType);
             }
 
             return fileType;
