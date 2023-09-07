@@ -24,7 +24,8 @@ namespace MagicBytesValidator.Services
             }
 
             return _fileTypes
-                .FirstOrDefault(f => f.MimeTypes.Contains(mimeType));
+                .FirstOrDefault(f => f.MimeTypes.Any(fm => fm
+                    .Equals(mimeType, StringComparison.InvariantCultureIgnoreCase)));
         }
 
         /// <inheritdoc />
