@@ -5,11 +5,11 @@ namespace MagicBytesValidator.Formats
     public class Xls : FileType
     {
         public Xls() : base(
-            "application/msexcel",
-            new[] {"xls", "xla"},
+            new[] { "application/msexcel" },
+            new[] { "xls", "xla" },
             new[]
             {
-                new byte[] {208, 207, 17, 224, 161, 177, 26, 225}
+                new byte[] { 208, 207, 17, 224, 161, 177, 26, 225 }
             })
         {
         }

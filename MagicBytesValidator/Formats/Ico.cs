@@ -5,11 +5,11 @@ namespace MagicBytesValidator.Formats
     public class Ico : FileType
     {
         public Ico() : base(
-            "image/x-icon",
-            new[] {"ico"},
+            new[] { "image/x-icon" },
+            new[] { "ico" },
             new[]
             {
-                new byte[] {0, 0, 1, 0}
+                new byte[] { 0, 0, 1, 0 }
             })
         {
         }

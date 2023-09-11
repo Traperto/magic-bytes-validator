@@ -5,11 +5,11 @@ namespace MagicBytesValidator.Formats
     public class Ppt : FileType
     {
         public Ppt() : base(
-            "application/mspowerpoint",
-            new[] {"ppt", "ppz", "pps", "pot"},
+            new[] { "application/mspowerpoint" },
+            new[] { "ppt", "ppz", "pps", "pot" },
             new[]
             {
-                new byte[] {208, 207, 17, 224, 161, 177, 26, 225}
+                new byte[] { 208, 207, 17, 224, 161, 177, 26, 225 }
             })
         {
         }

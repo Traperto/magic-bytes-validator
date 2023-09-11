@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MagicBytesValidator.Exceptions.Http
 {
@@ -8,9 +9,9 @@ namespace MagicBytesValidator.Exceptions.Http
     public class MimeTypeMismatchException : Exception
     {
         public MimeTypeMismatchException(
-            string mimeType1, 
+            IEnumerable<string> mimeTypes, 
             string mimeType2
-            ) : base($"Mismatch of MIME types ('{mimeType1}' != '{mimeType2}')")
+            ) : base($"Mismatch of MIME types ('{mimeType2}' not in ['{string.Join(",", mimeTypes)}'].)")
         {
         }
     }

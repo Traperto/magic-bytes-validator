@@ -5,11 +5,11 @@ namespace MagicBytesValidator.Formats
     public class Dxr : FileType
     {
         public Dxr() : base(
-            "application/x-director",
-            new[] {"dxr", "dcr", "dir"},
+            new[] { "application/x-director" },
+            new[] { "dxr", "dcr", "dir" },
             new[]
             {
-                new byte[] {77, 86, 57, 51}
+                new byte[] { 77, 86, 57, 51 }
             })
         {
         }

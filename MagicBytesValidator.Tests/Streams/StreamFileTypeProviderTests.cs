@@ -17,9 +17,10 @@ namespace MagicBytesValidator.Tests.Streams
         public async Task Should_find_by_magic_byte_sequence()
         {
             var matchingFileType = new FileType(
-                "matching",
+                new[] { "matching" },
                 new[] { "mtch" },
-                new[] {
+                new[]
+                {
                     new byte[] { 0x11, 0x12, 0x19, 0x20 },
                     new byte[] { 0x11, 0x12, 0x18 },
                     new byte[] { 0x11, 0x12 },
@@ -27,9 +28,10 @@ namespace MagicBytesValidator.Tests.Streams
             );
 
             var mismatchingFileType = new FileType(
-                "mismatching",
+                new[] { "mismatching" },
                 new[] { "mism" },
-                new[] {
+                new[]
+                {
                     new byte[] { 0x11, 0x22 },
                     new byte[] { 0x11, 0x22, 0x44, 0x55 }
                 }
@@ -54,9 +56,10 @@ namespace MagicBytesValidator.Tests.Streams
         public async Task Should_reset_stream_position()
         {
             var matchingFileType = new FileType(
-                "matching",
+                new[] { "matching" },
                 new[] { "mtch" },
-                new[] {
+                new[]
+                {
                     new byte[] { 0x11, 0x12, 0x19, 0x20 },
                     new byte[] { 0x11, 0x12, 0x18 },
                     new byte[] { 0x11, 0x12 },
@@ -85,9 +88,10 @@ namespace MagicBytesValidator.Tests.Streams
         public async Task Should_handle_unknown_file_type()
         {
             var mismatchingFileType = new FileType(
-                "mismatching",
+                new[] { "mismatching" },
                 new[] { "mism" },
-                new[] {
+                new[]
+                {
                     new byte[] { 0x11, 0x22 },
                     new byte[] { 0x11, 0x22, 0x44, 0x55 }
                 }
