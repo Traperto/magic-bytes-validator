@@ -1,17 +1,17 @@
 using MagicBytesValidator.Models;
 
-namespace MagicBytesValidator.Formats
+namespace MagicBytesValidator.Formats;
+
+public class Bmp : FileType
 {
-    public class Bmp : FileType
-    {
-        public Bmp() : base(
-            new[] { "image/bmp" },
-            new[] { "bmp" },
-            new[]
-            {
-                new byte[] { 66, 77 }
-            })
+    public Bmp() : base(
+        new[] { "image/bmp" },
+        new[] { "bmp" },
+        new[]
         {
+            new byte[] { 66, 77 }
         }
+    )
+    {
     }
 }

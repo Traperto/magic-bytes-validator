@@ -1,19 +1,19 @@
 using MagicBytesValidator.Models;
 
-namespace MagicBytesValidator.Formats
+namespace MagicBytesValidator.Formats;
+
+public class Mpg : FileType
 {
-    public class Mpg : FileType
-    {
-        public Mpg() : base(
-            new[] { "video/mpeg" },
-            new[] { "mpg", "mpeg", "mpe" },
-            new[]
-            {
-                new byte[] { 71 },
-                new byte[] { 0, 0, 1, 186 },
-                new byte[] { 0, 0, 1, 179 }
-            })
+    public Mpg() : base(
+        new[] { "video/mpeg" },
+        new[] { "mpg", "mpeg", "mpe" },
+        new[]
         {
+            new byte[] { 71 },
+            new byte[] { 0, 0, 1, 186 },
+            new byte[] { 0, 0, 1, 179 }
         }
+    )
+    {
     }
 }
