@@ -1,17 +1,17 @@
 using MagicBytesValidator.Models;
 
-namespace MagicBytesValidator.Formats
+namespace MagicBytesValidator.Formats;
+
+public class Ogv : FileType
 {
-    public class Ogv : FileType
-    {
-        public Ogv() : base(
-            new[] { "video/ogg" },
-            new[] { "ogv", "ogg" },
-            new[]
-            {
-                new byte[] { 79, 103, 103, 83 }
-            })
+    public Ogv() : base(
+        new[] { "video/ogg" },
+        new[] { "ogv", "ogg" },
+        new[]
         {
+            new byte[] { 79, 103, 103, 83 }
         }
+    )
+    {
     }
 }

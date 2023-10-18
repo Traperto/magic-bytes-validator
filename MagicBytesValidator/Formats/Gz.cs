@@ -1,17 +1,17 @@
 using MagicBytesValidator.Models;
 
-namespace MagicBytesValidator.Formats
+namespace MagicBytesValidator.Formats;
+
+public class Gz : FileType
 {
-    public class Gz : FileType
-    {
-        public Gz() : base(
-            new[] { "application/gzip" },
-            new[] { "gz" },
-            new[]
-            {
-                new byte[] { 31, 139 }
-            })
+    public Gz() : base(
+        new[] { "application/gzip" },
+        new[] { "gz" },
+        new[]
         {
+            new byte[] { 31, 139 }
         }
+    )
+    {
     }
 }

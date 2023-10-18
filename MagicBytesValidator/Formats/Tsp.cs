@@ -1,17 +1,17 @@
 using MagicBytesValidator.Models;
 
-namespace MagicBytesValidator.Formats
+namespace MagicBytesValidator.Formats;
+
+public class Tsp : FileType
 {
-    public class Tsp : FileType
-    {
-        public Tsp() : base(
-            new[] { "application/dsptype" },
-            new[] { "tsp" },
-            new[]
-            {
-                new byte[] { 77, 90 }
-            })
+    public Tsp() : base(
+        new[] { "application/dsptype" },
+        new[] { "tsp" },
+        new[]
         {
+            new byte[] { 77, 90 }
         }
+    )
+    {
     }
 }
