@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Docx : FileType
+public class Docx : FileTypeWithStartSequences
 {
     public Docx() : base(
         new[] { "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },

@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Doc : FileType
+public class Doc : FileTypeWithStartSequences
 {
     public Doc() : base(
         new[] { "application/msword" },

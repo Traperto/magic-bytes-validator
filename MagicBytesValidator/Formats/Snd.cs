@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Snd : FileType
+public class Snd : FileTypeWithStartSequences
 {
     public Snd() : base(
         new[] { "audio/basic" },

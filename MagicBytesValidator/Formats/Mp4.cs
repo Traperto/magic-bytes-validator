@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Mp4 : FileType
+public class Mp4 : FileTypeWithOffsetStartSequences
 {
     public Mp4() : base(
         new[] { "video/mp4" },

@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Gz : FileType
+public class Gz : FileTypeWithStartSequences
 {
     public Gz() : base(
         new[] { "application/gzip" },

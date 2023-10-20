@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Tif : FileType
+public class Tif : FileTypeWithStartSequences
 {
     public Tif() : base(
         new[] { "image/tiff" },

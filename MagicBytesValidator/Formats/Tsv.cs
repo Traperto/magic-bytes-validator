@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Tsv : FileType
+public class Tsv : FileTypeWithStartSequences
 {
     public Tsv() : base(
         new[] { "text/tab-separated-values" },

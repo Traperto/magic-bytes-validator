@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Gif : FileType
+public class Gif : FileTypeWithStartSequences
 {
     public Gif() : base(
         new[] { "image/gif" },

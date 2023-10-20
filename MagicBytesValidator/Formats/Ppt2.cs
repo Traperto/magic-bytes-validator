@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Ppt2 : FileType
+public class Ppt2 : FileTypeWithStartSequences
 {
     public Ppt2() : base(
         new[] { "application/vnd.ms-powerpoint" },

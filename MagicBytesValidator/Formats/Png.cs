@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Png : FileType
+public class Png : FileTypeWithStartSequences
 {
     public Png() : base(
         new[] { "image/png" },

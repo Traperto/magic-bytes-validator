@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Pptx : FileType
+public class Pptx : FileTypeWithStartSequences
 {
     public Pptx() : base(
         new[] { "application/vnd.openxmlformats-officedocument.presentationml.presentation" },

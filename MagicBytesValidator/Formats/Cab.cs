@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Cab : FileType
+public class Cab : FileTypeWithStartSequences
 {
     public Cab() : base(
         new[] { "application/x-shockwave-flash" },

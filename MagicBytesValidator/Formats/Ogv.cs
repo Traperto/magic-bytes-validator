@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Ogv : FileType
+public class Ogv : FileTypeWithStartSequences
 {
     public Ogv() : base(
         new[] { "video/ogg" },

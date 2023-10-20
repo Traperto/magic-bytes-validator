@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Midi : FileType
+public class Midi : FileTypeWithStartSequences
 {
     public Midi() : base(
         new[] { "audio/x-midi" },

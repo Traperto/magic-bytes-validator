@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Bin : FileType
+public class Bin : FileTypeWithStartSequences
 {
     public Bin() : base(
         new[] { "application/octet-stream" },

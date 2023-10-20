@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Ico : FileType
+public class Ico : FileTypeWithStartSequences
 {
     public Ico() : base(
         new[] { "image/x-icon" },

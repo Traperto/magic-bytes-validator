@@ -5,7 +5,7 @@ namespace MagicBytesValidator.Formats;
 /// <summary>
 /// As plain text is not really defined by magic bytes, handle with care when using this file-type.
 /// </summary>
-public class Txt : FileType
+public class Txt : FileTypeWithStartSequences
 {
     public Txt() : base(
         new[] { "text/plain" },

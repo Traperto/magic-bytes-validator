@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Jpg : FileType
+public class Jpg : FileTypeWithStartSequences
 {
     public Jpg() : base(
         new[] { "image/jpeg" },

@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Pbm : FileType
+public class Pbm : FileTypeWithStartSequences
 {
     public Pbm() : base(
         new[] { "image/x-portable-bitmap" },

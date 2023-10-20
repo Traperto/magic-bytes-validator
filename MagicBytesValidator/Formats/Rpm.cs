@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Rpm : FileType
+public class Rpm : FileTypeWithStartSequences
 {
     public Rpm() : base(
         new[] { "audio/x-pn-realaudio-plugin" },

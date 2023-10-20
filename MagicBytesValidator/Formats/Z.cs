@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Z : FileType
+public class Z : FileTypeWithStartSequences
 {
     public Z() : base(
         new[] { "application/x-compress" },

@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Pgm : FileType
+public class Pgm : FileTypeWithStartSequences
 {
     public Pgm() : base(
         new[] { "image/x-portable-graymap" },

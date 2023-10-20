@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Odt : FileType
+public class Odt : FileTypeWithStartSequences
 {
     public Odt() : base(
         new[] { "application/vnd.oasis.opendocument.text" },

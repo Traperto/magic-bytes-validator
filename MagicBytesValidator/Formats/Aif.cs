@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Aif : FileType
+public class Aif : FileTypeWithStartSequences
 {
     public Aif() : base(
         new[] { "audio/x-aiff" },

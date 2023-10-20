@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Rar : FileType
+public class Rar : FileTypeWithStartSequences
 {
     public Rar() : base(
         new[] { "application/vnd.rar", "application/x-rar-compressed" },

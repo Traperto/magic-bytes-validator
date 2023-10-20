@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Webm : FileType
+public class Webm : FileTypeWithStartSequences
 {
     public Webm() : base(
         new[] { "video/webm" },

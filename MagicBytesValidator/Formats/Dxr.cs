@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Dxr : FileType
+public class Dxr : FileTypeWithStartSequences
 {
     public Dxr() : base(
         new[] { "application/x-director" },

@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Xls : FileType
+public class Xls : FileTypeWithStartSequences
 {
     public Xls() : base(
         new[] { "application/msexcel" },

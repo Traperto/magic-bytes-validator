@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Rtf : FileType
+public class Rtf : FileTypeWithStartSequences
 {
     public Rtf() : base(
         new[] { "application/rtf" },

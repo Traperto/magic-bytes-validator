@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Mp3 : FileType
+public class Mp3 : FileTypeWithStartSequences
 {
     public Mp3() : base(
         new[] { "audio/mpeg" },

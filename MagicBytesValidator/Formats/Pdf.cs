@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Pdf : FileType
+public class Pdf : FileTypeWithStartSequences
 {
     public Pdf() : base(
         new[] { "application/pdf" },

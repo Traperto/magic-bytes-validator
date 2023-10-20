@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Mpg : FileType
+public class Mpg : FileTypeWithStartSequences
 {
     public Mpg() : base(
         new[] { "video/mpeg" },

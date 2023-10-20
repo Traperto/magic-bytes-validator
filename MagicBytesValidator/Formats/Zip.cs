@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Zip : FileType
+public class Zip : FileTypeWithStartSequences
 {
     public Zip() : base(
         new[] { "application/zip", "application/x-zip-compressed" },

@@ -2,7 +2,7 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Xlsx : FileType
+public class Xlsx : FileTypeWithStartSequences
 {
     public Xlsx() : base(
         new[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
