@@ -11,37 +11,34 @@ using Xunit;
 
 namespace MagicBytesValidator.Tests;
 
-public class IsValidTests
+public class ValidatorIsValidAsync
 {
     private readonly Validator _validator;
-    private readonly FileType _fileTypeGif;
-    private readonly FileType _fileTypePng;
-    private readonly FileType _fileTypeZip;
+    private readonly IFileType _fileTypeGif;
+    private readonly IFileType _fileTypePng;
+    private readonly IFileType _fileTypeZip;
     private readonly MemoryStream _gifMemoryStream;
+    private readonly MemoryStream _pngMemoryStream;
     private readonly MemoryStream _zipMemoryStream;
-    private readonly Gif _gif;
-    private readonly Png _png;
-    private readonly Zip _zip;
 
-    public IsValidTests()
+    public ValidatorIsValidAsync()
     {
-        _gif = new Gif();
-        _png = new Png();
-        _zip = new Zip();
-        _gifMemoryStream = new MemoryStream();
-        _zipMemoryStream = new MemoryStream();
+        var gif = new Gif();
+        var png = new Png();
+        var zip = new Zip();
+        _gifMemoryStream = new MemoryStream(gif.MagicByteSequences[0]);
+        _pngMemoryStream = new MemoryStream(png.MagicByteSequences[0]);
+        _zipMemoryStream = new MemoryStream(zip.MagicByteSequences[0]);
 
         _validator = new Validator();
-        _fileTypeGif = _validator.Mapping.FindByExtension(_gif.Extensions[0]) ?? throw new NullReferenceException();
-        _fileTypePng = _validator.Mapping.FindByMimeType(_png.MimeTypes.First()) ?? throw new NullReferenceException();
-        _fileTypeZip = _validator.Mapping.FindByMimeType(_zip.MimeTypes.First()) ?? throw new NullReferenceException();
+        _fileTypeGif = _validator.Mapping.FindByExtension(gif.Extensions[0]) ?? throw new NullReferenceException();
+        _fileTypePng = _validator.Mapping.FindByMimeType(png.MimeTypes.First()) ?? throw new NullReferenceException();
+        _fileTypeZip = _validator.Mapping.FindByMimeType(zip.MimeTypes.First()) ?? throw new NullReferenceException();
     }
 
     [Fact]
     public async Task Should_validate_gif()
     {
-        await _gifMemoryStream.WriteAsync(_gif.MagicByteSequences[0]);
-
         // Act
         var valid = await _validator.IsValidAsync(_gifMemoryStream, _fileTypeGif, CancellationToken.None);
 
@@ -52,8 +49,6 @@ public class IsValidTests
     [Fact]
     public async Task Should_validate_zip()
     {
-        await _zipMemoryStream.WriteAsync(_zip.MagicByteSequences[0]);
-
         // Act
         var valid = await _validator.IsValidAsync(_zipMemoryStream, _fileTypeZip, CancellationToken.None);
 
@@ -64,8 +59,6 @@ public class IsValidTests
     [Fact]
     public async Task Should_fail_incorrect_extension()
     {
-        await _gifMemoryStream.WriteAsync(_gif.MagicByteSequences[0]);
-
         // Act
         var invalidExtension = await _validator.IsValidAsync(_gifMemoryStream, _fileTypePng, CancellationToken.None);
 
@@ -76,8 +69,6 @@ public class IsValidTests
     [Fact]
     public async Task Should_fail_incorrect_mimetype()
     {
-        await _gifMemoryStream.WriteAsync(_gif.MagicByteSequences[0]);
-
         // Act
         var inValidMimeType = await _validator.IsValidAsync(_gifMemoryStream, _fileTypePng, CancellationToken.None);
 
@@ -101,10 +92,8 @@ public class IsValidTests
     [Fact]
     public async Task Should_fail_incorrect_magicByte_sequence()
     {
-        await _gifMemoryStream.WriteAsync(_png.MagicByteSequences[0]);
-
         // Act
-        var invalidMagicByte = await _validator.IsValidAsync(_gifMemoryStream, _fileTypeGif, CancellationToken.None);
+        var invalidMagicByte = await _validator.IsValidAsync(_pngMemoryStream, _fileTypeGif, CancellationToken.None);
 
         // Assert
         invalidMagicByte.Should().BeFalse();

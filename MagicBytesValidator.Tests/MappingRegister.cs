@@ -6,11 +6,11 @@ using Xunit;
 
 namespace MagicBytesValidator.Tests;
 
-public class RegisterTests
+public class MappingRegister
 {
     private readonly Mapping _mapping = new();
 
-    private readonly FileType _trpFileType = new(
+    private readonly IFileType _trpFileType = new FileTypeWithStartSequences(
         new[] { "traperto/trp" },
         new[] { "trp" },
         new[]
@@ -29,7 +29,7 @@ public class RegisterTests
     [Fact]
     public void Should_register_list_filetype()
     {
-        var neonJsFileType = new FileType(
+        var neonJsFileType = new FileTypeWithStartSequences(
             new[] { "traperto/niklasschmidt" },
             new[] { "nms" },
             new[]
@@ -42,7 +42,7 @@ public class RegisterTests
             }
         );
 
-        var kryptobiFileType = new FileType(
+        var kryptobiFileType = new FileTypeWithStartSequences(
             new[] { "traperto/tobiasjanssen" },
             new[] { "tjn" },
             new[]
@@ -69,7 +69,7 @@ public class RegisterTests
     }
 }
 
-public class AssemblyFacade : FileType
+public class AssemblyFacade : FileTypeWithStartSequences
 {
     public AssemblyFacade() : base(
         new[] { "facade/trp" },
