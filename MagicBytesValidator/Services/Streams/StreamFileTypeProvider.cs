@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -16,49 +17,35 @@ public class StreamFileTypeProvider : IStreamFileTypeProvider
         _mapping = mapping;
     }
 
-    public async Task<FileType?> FindByMagicByteSequenceAsync(
-        Stream stream,
-        CancellationToken cancellationToken
-    )
+    [Obsolete("Use TryFindUnambiguousAsync instead")]
+    public Task<IFileType?> FindByMagicByteSequenceAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        return TryFindUnambiguousAsync(stream, cancellationToken);
+    }
+    public async Task<IEnumerable<IFileType>> FindAllMatchesAsync(Stream stream, CancellationToken cancellationToken)
     {
         if (stream is null)
         {
             throw new ArgumentNullException(nameof(stream));
         }
 
-        var sequencesToFileTypes = _mapping.FileTypes
-            .Select(fileType =>
-                fileType.MagicByteSequences
-                    .Select(sequence => (length: sequence.Length + fileType.MagicByteOffset, sequence, fileType))
-            )
-            .SelectMany(group => group)
-            .OrderByDescending(group => group.length);
-
-        if (!sequencesToFileTypes.Any())
-        {
-            return null;
-        }
-
-        var maxMagicBytesSequenceLength = sequencesToFileTypes
-            .First()
-            .length;
-        var streamBuffer = new byte[maxMagicBytesSequenceLength];
-
         var previousStreamPosition = stream.Position;
         stream.Position = 0;
 
+        var streamBuffer = new byte[stream.Length];
         _ = await stream.ReadAsync(streamBuffer, cancellationToken);
 
         stream.Position = previousStreamPosition;
 
-        foreach (var (length, sequence, fileType) in sequencesToFileTypes)
-        {
-            if (streamBuffer.Skip((int)fileType.MagicByteOffset).Take(sequence.Length).SequenceEqual(sequence))
-            {
-                return fileType;
-            }
-        }
+        return _mapping.FileTypes.Where(fileType => fileType.Matches(streamBuffer));
+    }
 
-        return null;
+    public async Task<IFileType?> TryFindUnambiguousAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        var matches = (await FindAllMatchesAsync(stream, cancellationToken)).ToList();
+
+        return matches.Count == 1
+            ? matches.First()
+            : null;
     }
 }

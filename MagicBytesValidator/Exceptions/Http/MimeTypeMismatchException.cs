@@ -14,4 +14,10 @@ public class MimeTypeMismatchException : Exception
     ) : base($"Mismatch of MIME types ('{mimeType2}' not in ['{string.Join(",", mimeTypes)}'].)")
     {
     }
+
+    public MimeTypeMismatchException(
+        string declaredMimeType
+    ) : base($"Mismatch of MIME types ('{declaredMimeType}' does not represent content.)")
+    {
+    }
 }

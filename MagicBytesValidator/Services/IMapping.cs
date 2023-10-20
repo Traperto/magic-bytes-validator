@@ -8,41 +8,35 @@ namespace MagicBytesValidator.Services;
 public interface IMapping
 {
     /// <summary>
-    /// Currently registered <see cref="FileType"/>
+    /// Currently registered <see cref="IFileType"/>
     /// </summary>
-    IReadOnlyList<FileType> FileTypes { get; }
+    IReadOnlyList<IFileType> FileTypes { get; }
 
     /// <summary>
-    /// Tries to find a known <see cref="FileType"/> by given MIME type.
+    /// Tries to find a known <see cref="IFileType"/> by given MIME type.
     /// </summary>
-    /// <param name="mimeType">MIME type that should be searched for</param>
-    /// <returns>FileType that belongs to the given MIME type</returns>
     /// <exception cref="ArgumentEmptyException">When given MIME type is null or empty</exception>
-    FileType? FindByMimeType(string mimeType);
+    IFileType? FindByMimeType(string mimeType);
 
     /// <summary>
-    /// Tries to find a known <see cref="FileType"/> by given file extension.
+    /// Tries to find a known <see cref="IFileType"/> by given file extension.
     /// </summary>
-    /// <param name="extension">File extension that should be searched for</param>
-    /// <returns>FileType that contains the given file extension</returns>
     /// <exception cref="ArgumentEmptyException">When given file extension is null or empty</exception>
-    FileType? FindByExtension(string extension);
+    IFileType? FindByExtension(string extension);
 
     /// <summary>
-    /// Registers a new <see cref="FileType"/> in the mapping.
+    /// Registers a new <see cref="IFileType"/> in the mapping.
     /// </summary>
-    /// <param name="fileType">FileType to register</param>
-    void Register(FileType fileType);
+    void Register(IFileType fileType);
 
     /// <summary>
-    /// Registers a collection of <see cref="FileType"/> in the mapping.
+    /// Registers a collection of <see cref="IFileType"/> in the mapping.
     /// </summary>
-    /// <param name="fileTypes">Collection of FileType to register</param>
-    void Register(IReadOnlyList<FileType> fileTypes);
+    void Register(IEnumerable<IFileType> fileTypes);
 
     /// <summary>
-    /// Registers all <see cref="FileType"/> that a part of given assembly
+    /// Registers all <see cref="IFileType"/> that a part of given assembly
     /// </summary>
-    /// <param name="assembly"></param>
+    /// <param name="assembly">Assembly that will be searched for <see cref="IFileType"/>s</param>
     void Register(Assembly assembly);
 }
