@@ -1,12 +1,14 @@
 using System.Linq;
 using MagicBytesValidator.Exceptions;
+using MagicBytesValidator.Extensions;
 
 namespace MagicBytesValidator.Models;
 
 /// <summary>
-/// Variant of <see cref="IFileType"/> that is based on magic byte sequences at the start of the file
+/// Variant of <see cref="IFileType"/> that is based on magic byte sequences at the start of the file.
+/// The sequences can have undefined bytes though. Those bytes are represented as null in the MagicByteSequences.
 /// </summary>
-public class FileTypeWithStartSequences : IFileType
+public class FileTypeWithIncompleteStartSequences : IFileType
 {
     /// <inheritdoc />
     public string[] MimeTypes { get; }
@@ -18,14 +20,14 @@ public class FileTypeWithStartSequences : IFileType
     /// List of magic-byte sequences to identify a file type based on the file contents
     /// <example>[ [47 49 46 38 37 61], [47 49 46 38 39 61] ] for "gif" files</example>
     /// </summary>
-    public byte[][] MagicByteSequences { get; }
+    public byte?[][] MagicByteSequences { get; }
 
-    public FileTypeWithStartSequences(string[] mimeTypes, string[] extensions, byte[] magicByteSequence)
+    public FileTypeWithIncompleteStartSequences(string[] mimeTypes, string[] extensions, byte?[] magicByteSequence)
         : this(mimeTypes, extensions, new[] { magicByteSequence })
     {
     }
 
-    public FileTypeWithStartSequences(string[] mimeTypes, string[] extensions, byte[][] magicByteSequences)
+    public FileTypeWithIncompleteStartSequences(string[] mimeTypes, string[] extensions, byte?[][] magicByteSequences)
     {
         if (!mimeTypes.Any() || mimeTypes.Any(string.IsNullOrEmpty))
         {
@@ -49,6 +51,27 @@ public class FileTypeWithStartSequences : IFileType
 
     public virtual bool Matches(byte[] bytes)
     {
-        return MagicByteSequences.Any(mb => mb.SequenceEqual(bytes.Take(mb.Length)));
+        return MagicByteSequences.Any(sequence =>
+        {
+            if (bytes.Length < sequence.Length)
+            {
+                return false;
+            }
+
+            foreach (var (sequenceByte, index) in sequence.AsIndexed())
+            {
+                if (sequenceByte == null)
+                {
+                    continue;
+                }
+
+                if (sequenceByte != bytes[index])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        });
     }
 }

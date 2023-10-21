@@ -2,18 +2,20 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
-public class Mp4 : FileTypeWithOffsetStartSequences
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+public class Mp4 : FileTypeWithIncompleteStartSequences
 {
     public Mp4() : base(
         new[] { "video/mp4" },
         new[] { "mp4" },
         new[]
         {
-            new byte[] { 102, 116, 121, 112, 105, 115, 111, 109 },
-            new byte[] { 102, 116, 121, 112, 109, 112, 52, 50 },
-            new byte[] { 102, 116, 121, 112, 77, 83, 62, 86 },
-        },
-        4
+            new byte?[] { null, null, null, null, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6F, 0x6D },
+            new byte?[] { null, null, null, null, 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70, 0x34, 0x32 },
+            new byte?[] { null, null, null, null, 0x66, 0x74, 0x79, 0x70, 0x4D, 0x53, 0x3E, 0x56 },
+            new byte?[] { null, null, null, null, 0x66, 0x74, 0x79, 0x70, 0x4D, 0x53, 0x4E, 0x56 },
+        }
     )
     {
     }

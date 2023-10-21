@@ -2,16 +2,17 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
 public class Cab : FileTypeWithStartSequences
 {
     public Cab() : base(
-        new[] { "application/x-shockwave-flash" },
-        new[] { "cab", "swf" },
+        new[] { "application/vnd.ms-cab-compressed", "application/x-cab-compressed" },
+        new[] { "cab" },
         new[]
         {
-            new byte[] { 77, 83, 67, 70 },
-            new byte[] { 67, 87, 83 },
-            new byte[] { 73, 83, 99, 40 }
+            new byte[] { 0x49, 0x53, 0x63, 0x28 },
+            new byte[] { 0x4D, 0x53, 0x43, 0x46 }
         }
     )
     {

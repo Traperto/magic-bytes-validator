@@ -2,6 +2,8 @@ using MagicBytesValidator.Models;
 
 namespace MagicBytesValidator.Formats;
 
+// TODO: Check if correct
+
 public class Bin : FileTypeWithStartSequences
 {
     public Bin() : base(
