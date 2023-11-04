@@ -29,23 +29,19 @@ public class StreamFileTypeProvider : IStreamFileTypeProvider
         var sequencesToFileTypes = _mapping.FileTypes
             .Select(fileType =>
                 fileType.MagicByteSequences
-                    .Select(sequence => (sequence, fileType))
+                    .Select(sequence => (length: sequence.Length + fileType.MagicByteOffset, sequence, fileType))
             )
             .SelectMany(group => group)
-            .OrderBy(group => group.sequence.Length)
-            .ToDictionary(
-                group => group.sequence,
-                group => group.fileType
-            );
+            .OrderByDescending(group => group.length);
 
         if (!sequencesToFileTypes.Any())
         {
             return null;
         }
 
-        var maxMagicBytesSequenceLength = sequencesToFileTypes.Keys
-            .Last()
-            .Length;
+        var maxMagicBytesSequenceLength = sequencesToFileTypes
+            .First()
+            .length;
         var streamBuffer = new byte[maxMagicBytesSequenceLength];
 
         var previousStreamPosition = stream.Position;
@@ -55,9 +51,9 @@ public class StreamFileTypeProvider : IStreamFileTypeProvider
 
         stream.Position = previousStreamPosition;
 
-        foreach (var (sequence, fileType) in sequencesToFileTypes)
+        foreach (var (length, sequence, fileType) in sequencesToFileTypes)
         {
-            if (streamBuffer.Take(sequence.Length).SequenceEqual(sequence))
+            if (streamBuffer.Skip((int)fileType.MagicByteOffset).Take(sequence.Length).SequenceEqual(sequence))
             {
                 return fileType;
             }
