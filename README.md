@@ -102,6 +102,15 @@ var assembly = typeof(CustomFileType).Assembly;
 _mapping.Register(assembly);
 ```
 
+### CLI
+There's a CLI tool (_MagicBytesValidator.CLI_) which can be used to determine
+MIME types for a local file by calling the following command.
+```shell
+dotnet run --project MagicBytesValidator.CLI -- [PATH]
+```
+
+This can be useful when debugging or validating newly added FileTypes.
+
 ### List of Filetypes
 
 | Mimetype                                        | Extension                                  | Magicbytes (decimal)                                                                                                       |
