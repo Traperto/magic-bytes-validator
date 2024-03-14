@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MagicBytesValidator.Exceptions;
+﻿namespace MagicBytesValidator.Exceptions;
 
 /// <summary>
 /// Exception that can be thrown if a given argument is empty or contains an empty value.
