@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿#pragma warning disable CS0618 // Type or member is obsolete
+
+using System.Threading.Tasks;
 using MagicBytesValidator.Models;
 using MagicBytesValidator.Services;
 using Xunit;
@@ -11,12 +13,12 @@ using System;
 
 namespace MagicBytesValidator.Tests.Streams;
 
-public class StreamFileTypeProviderTests
+public class FindByMagicByteSequenceAsync
 {
     [Fact]
     public async Task Should_find_by_magic_byte_sequence()
     {
-        var matchingFileType = new FileType(
+        var matchingFileType = new FileTypeWithStartSequences(
             new[] { "matching" },
             new[] { "mtch" },
             new[]
@@ -27,7 +29,7 @@ public class StreamFileTypeProviderTests
             }
         );
 
-        var mismatchingFileType = new FileType(
+        var mismatchingFileType = new FileTypeWithStartSequences(
             new[] { "mismatching" },
             new[] { "mism" },
             new[]
@@ -39,8 +41,8 @@ public class StreamFileTypeProviderTests
 
         var mapping = new Mock<IMapping>();
         mapping
-            .SetupGet(m => m.FileTypes)
-            .Returns(new[] { matchingFileType, mismatchingFileType });
+           .SetupGet(m => m.FileTypes)
+           .Returns(new[] { matchingFileType, mismatchingFileType });
 
         var sut = new StreamFileTypeProvider(mapping.Object);
 
@@ -55,7 +57,7 @@ public class StreamFileTypeProviderTests
     [Fact]
     public async Task Should_reset_stream_position()
     {
-        var matchingFileType = new FileType(
+        var matchingFileType = new FileTypeWithStartSequences(
             new[] { "matching" },
             new[] { "mtch" },
             new[]
@@ -68,8 +70,8 @@ public class StreamFileTypeProviderTests
 
         var mapping = new Mock<IMapping>();
         mapping
-            .SetupGet(m => m.FileTypes)
-            .Returns(new[] { matchingFileType });
+           .SetupGet(m => m.FileTypes)
+           .Returns(new[] { matchingFileType });
 
         var sut = new StreamFileTypeProvider(mapping.Object);
 
@@ -87,7 +89,7 @@ public class StreamFileTypeProviderTests
     [Fact]
     public async Task Should_handle_unknown_file_type()
     {
-        var mismatchingFileType = new FileType(
+        var mismatchingFileType = new FileTypeWithStartSequences(
             new[] { "mismatching" },
             new[] { "mism" },
             new[]
@@ -99,8 +101,8 @@ public class StreamFileTypeProviderTests
 
         var mapping = new Mock<IMapping>();
         mapping
-            .SetupGet(m => m.FileTypes)
-            .Returns(new[] { mismatchingFileType });
+           .SetupGet(m => m.FileTypes)
+           .Returns(new[] { mismatchingFileType });
 
         var sut = new StreamFileTypeProvider(mapping.Object);
 
@@ -116,8 +118,8 @@ public class StreamFileTypeProviderTests
     {
         var mapping = new Mock<IMapping>();
         mapping
-            .SetupGet(m => m.FileTypes)
-            .Returns(Array.Empty<FileType>());
+           .SetupGet(m => m.FileTypes)
+           .Returns(Array.Empty<IFileType>());
 
         var sut = new StreamFileTypeProvider(mapping.Object);
 
@@ -133,8 +135,8 @@ public class StreamFileTypeProviderTests
     {
         var mapping = new Mock<IMapping>();
         mapping
-            .SetupGet(m => m.FileTypes)
-            .Returns(Array.Empty<FileType>());
+           .SetupGet(m => m.FileTypes)
+           .Returns(Array.Empty<IFileType>());
 
         var sut = new StreamFileTypeProvider(mapping.Object);
 
@@ -142,8 +144,6 @@ public class StreamFileTypeProviderTests
             async () => await sut.FindByMagicByteSequenceAsync(null!, CancellationToken.None)
         );
     }
-
-
 
     [Fact]
     public async Task Should_find_by_magic_byte_sequence_with_offset()
@@ -173,8 +173,8 @@ public class StreamFileTypeProviderTests
 
         var mapping = new Mock<IMapping>();
         mapping
-            .SetupGet(m => m.FileTypes)
-            .Returns(new[] { matchingFileType, mismatchingFileType });
+           .SetupGet(m => m.FileTypes)
+           .Returns(new[] { matchingFileType, mismatchingFileType });
 
         var sut = new StreamFileTypeProvider(mapping.Object);
 
@@ -202,8 +202,8 @@ public class StreamFileTypeProviderTests
 
         var mapping = new Mock<IMapping>();
         mapping
-            .SetupGet(m => m.FileTypes)
-            .Returns(new[] { mismatchingFileType });
+           .SetupGet(m => m.FileTypes)
+           .Returns(new[] { mismatchingFileType });
 
         var sut = new StreamFileTypeProvider(mapping.Object);
 
@@ -224,13 +224,14 @@ public class StreamFileTypeProviderTests
             {
                 new byte[] { 0x11, 0x22 },
                 new byte[] { 0x11, 0x22, 0x44, 0x55 }
-            }
+            },
+            0
         );
 
         var mapping = new Mock<IMapping>();
         mapping
-            .SetupGet(m => m.FileTypes)
-            .Returns(new[] { mismatchingFileType });
+           .SetupGet(m => m.FileTypes)
+           .Returns(new[] { mismatchingFileType });
 
         var sut = new StreamFileTypeProvider(mapping.Object);
 
@@ -241,3 +242,4 @@ public class StreamFileTypeProviderTests
         result.Should().BeNull();
     }
 }
+#pragma warning restore CS0618 // Type or member is obsolete

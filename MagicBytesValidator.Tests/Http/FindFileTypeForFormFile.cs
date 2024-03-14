@@ -9,7 +9,7 @@ using Xunit;
 
 namespace MagicBytesValidator.Tests.Http;
 
-public class FormFileTypeProviderTests
+public class FindFileTypeForFormFile
 {
     [Fact]
     public void Should_find_by_extension()
@@ -59,9 +59,9 @@ public class FormFileTypeProviderTests
 
     private static IFormFile ProvideGifFile(string name, string contentType)
     {
-        var fileTypeGif = new Gif();
-        var fileContents = fileTypeGif.MagicByteSequences.First().Concat(new byte[] { 0x11, 0x12 }).ToArray();
-        var fileStream = new MemoryStream(fileContents);
+        byte[] gifSequence = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61];
+        var fileContents = gifSequence.Concat(new byte[] { 0x11, 0x12 }).ToArray();
+        var fileStream = new MemoryStream(fileContents.ToArray());
 
         return new FormFile(
             new MemoryStream(fileContents.ToArray()),
