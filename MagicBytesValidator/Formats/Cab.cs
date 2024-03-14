@@ -1,19 +1,19 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Cab : FileType
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+public class Cab : FileByteFilter
 {
     public Cab() : base(
-        new[] { "application/x-shockwave-flash" },
-        new[] { "cab", "swf" },
-        new[]
-        {
-            new byte[] { 77, 83, 67, 70 },
-            new byte[] { 67, 87, 83 },
-            new byte[] { 73, 83, 99, 40 }
-        }
+        ["application/vnd.ms-cab-compressed", "application/x-cab-compressed"],
+        ["cab"]
     )
     {
+        StartsWithAnyOf(
+            [
+                [0x49, 0x53, 0x63, 0x28],
+                [0x4D, 0x53, 0x43, 0x46]
+            ]
+        );
     }
 }

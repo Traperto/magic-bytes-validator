@@ -1,17 +1,14 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Webm : FileType
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+public class Webm : FileByteFilter
 {
     public Webm() : base(
-        new[] { "video/webm" },
-        new[] { "webm" },
-        new[]
-        {
-            new byte[] { 26, 69, 223, 163 }
-        }
+        ["video/webm"],
+        ["mkv", "mka", "mks", "mk3d", "webm"]
     )
     {
+        StartsWith([0x1A, 0x45, 0xDF, 0xA3]);
     }
 }

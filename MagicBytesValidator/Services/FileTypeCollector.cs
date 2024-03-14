@@ -1,23 +1,27 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Services;
 
 public static class FileTypeCollector
 {
-    public static IEnumerable<FileType> CollectFileTypes(Assembly? assembly = null)
+    [Obsolete("Use CollectFileTypesForAssembly instead.")]
+    public static IEnumerable<IFileType> CollectFileTypes(Assembly? assembly = null)
     {
-        assembly ??= typeof(FileTypeCollector).GetTypeInfo().Assembly;
+        assembly ??= typeof(Mapping).GetTypeInfo().Assembly;
+        return CollectFileTypesForAssembly(assembly);
+    }
+
+    public static IEnumerable<IFileType> CollectFileTypesForAssembly(Assembly assembly)
+    {
+        if (assembly is null)
+        {
+            throw new ArgumentEmptyException(nameof(assembly));
+        }
 
         return assembly.GetTypes()
-            .Where(t => typeof(FileType).IsAssignableFrom(t))
+            .Where(t => typeof(IFileType).IsAssignableFrom(t))
             .Where(t => !t.GetTypeInfo().IsAbstract)
             .Where(t => t.GetConstructors().Any(c => c.GetParameters().Length == 0))
             .Select(Activator.CreateInstance)
-            .OfType<FileType>()
+            .OfType<IFileType>()
             .ToList();
     }
 }

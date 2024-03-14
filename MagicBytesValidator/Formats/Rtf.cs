@@ -1,17 +1,15 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Rtf : FileType
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+public class Rtf : FileByteFilter
 {
     public Rtf() : base(
-        new[] { "application/rtf" },
-        new[] { "rtf" },
-        new[]
-        {
-            new byte[] { 123, 92, 114, 116, 102, 49 }
-        }
+        ["application/rtf"],
+        ["rtf"]
     )
     {
+        StartsWith([0x7B, 0x5C, 0x72, 0x74, 0x66, 0x31])
+            .EndsWith([0x7D]);
     }
 }
