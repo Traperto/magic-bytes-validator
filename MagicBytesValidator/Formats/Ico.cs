@@ -1,17 +1,14 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Ico : FileType
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+public class Ico : FileByteFilter
 {
     public Ico() : base(
-        new[] { "image/x-icon" },
-        new[] { "ico" },
-        new[]
-        {
-            new byte[] { 0, 0, 1, 0 }
-        }
+        ["image/x-icon"],
+        ["ico"]
     )
     {
+        StartsWith([0x00, 0x00, 0x01, 0x00]);
     }
 }

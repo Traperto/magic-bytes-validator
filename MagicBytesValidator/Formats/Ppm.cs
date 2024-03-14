@@ -1,17 +1,17 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Ppm : FileType
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+/// <see href="https://en.wikipedia.org/wiki/Portable_bitmap"/>
+public class Ppm : FileByteFilter
 {
     public Ppm() : base(
-        new[] { "image/x-portable-pixmap" },
-        new[] { "ppm" },
-        new[]
-        {
-            new byte[] { 80, 51, 10 }
-        }
+        ["image/x-portable-pixmap"],
+        ["ppm"]
     )
     {
+        StartsWithAnyOf([
+            [0x50, 0x33, 0x0A],
+            [0x50, 0x36, 0x0A]
+        ]);
     }
 }
