@@ -6,12 +6,12 @@ public class FileByteFilter : IFileType
 {
     private readonly List<ByteCheck> _neededByteChecks = [];
     private readonly List<ByteCheck[]> _oneOfEachByteChecks = [];
-    private readonly List<byte?[]> _nonOffsetByteChecks = [];
+    private readonly List<byte?[]> _anywhereByteChecks = [];
     
     public string[] MimeTypes { get; }
     public string[] Extensions { get; }
 
-    protected FileByteFilter(string[] mimeTypes, string[] extensions)
+    public FileByteFilter(string[] mimeTypes, string[] extensions)
     {
         if (!mimeTypes.Any() || mimeTypes.Any(string.IsNullOrEmpty))
         {
@@ -51,15 +51,18 @@ public class FileByteFilter : IFileType
 
         // Then check byteArrays without fixed offsets
         // mainly byteArrays from Anywhere()
-        foreach (var byteCheckWithoutOffset in _nonOffsetByteChecks)
+        foreach (var byteCheckWithoutOffset in _anywhereByteChecks)
         {
+            var found = false;
             for (var index = 1; index <= fileByteStream.Length; index++)
             {
-                if (byteCheckWithoutOffset.Cast<byte>().SequenceEqual(fileByteStream.Skip(index).Take(byteCheckWithoutOffset.Length)))
-                    return true;
+                if (byteCheckWithoutOffset.Cast<byte>()
+                    .SequenceEqual(fileByteStream.Skip(index).Take(byteCheckWithoutOffset.Length)))
+                    found = true;
             }
 
-            return false;
+            if (!found)
+                return false;
         }
 
         return true;
@@ -91,7 +94,7 @@ public class FileByteFilter : IFileType
 
     public FileByteFilter Anywhere(byte?[] bytesToCheck)
     {
-        _nonOffsetByteChecks.Add(bytesToCheck);
+        _anywhereByteChecks.Add(bytesToCheck);
         return this;
     }
     
