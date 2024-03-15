@@ -58,11 +58,16 @@ public class FileByteFilter : IFileType
             {
                 if (byteCheckWithoutOffset.Cast<byte>()
                     .SequenceEqual(fileByteStream.Skip(index).Take(byteCheckWithoutOffset.Length)))
+                {
                     found = true;
+                    break;
+                }
             }
 
             if (!found)
-                return false;
+            {
+                return false;   
+            }
         }
 
         return true;
