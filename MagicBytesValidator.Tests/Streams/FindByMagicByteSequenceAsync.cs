@@ -18,26 +18,22 @@ public class FindByMagicByteSequenceAsync
     [Fact]
     public async Task Should_find_by_magic_byte_sequence()
     {
-        var matchingFileType = new FileTypeWithStartSequences(
-            new[] { "matching" },
-            new[] { "mtch" },
-            new[]
-            {
-                new byte[] { 0x11, 0x12, 0x19, 0x20 },
-                new byte[] { 0x11, 0x12, 0x18 },
-                new byte[] { 0x11, 0x12 },
-            }
-        );
+        var matchingFileType = new FileByteFilter(
+            ["matching"],
+            ["mtch"]
+        ).StartsWithAnyOf([
+            [0x11, 0x12, 0x19, 0x20],
+            [0x11, 0x12, 0x18],
+            [0x11, 0x12],
+        ]);
 
-        var mismatchingFileType = new FileTypeWithStartSequences(
-            new[] { "mismatching" },
-            new[] { "mism" },
-            new[]
-            {
-                new byte[] { 0x11, 0x22 },
-                new byte[] { 0x11, 0x22, 0x44, 0x55 }
-            }
-        );
+        var mismatchingFileType = new FileByteFilter(
+            ["mismatching"],
+            ["mism"]
+        ).StartsWithAnyOf([
+            [0x11, 0x22],
+            [0x11, 0x22, 0x44, 0x55]
+        ]);
 
         var mapping = new Mock<IMapping>();
         mapping
@@ -57,16 +53,14 @@ public class FindByMagicByteSequenceAsync
     [Fact]
     public async Task Should_reset_stream_position()
     {
-        var matchingFileType = new FileTypeWithStartSequences(
-            new[] { "matching" },
-            new[] { "mtch" },
-            new[]
-            {
-                new byte[] { 0x11, 0x12, 0x19, 0x20 },
-                new byte[] { 0x11, 0x12, 0x18 },
-                new byte[] { 0x11, 0x12 },
-            }
-        );
+        var matchingFileType = new FileByteFilter(
+            ["matching"],
+            ["mtch"]
+        ).StartsWithAnyOf([
+            [0x11, 0x12, 0x19, 0x20],
+            [0x11, 0x12, 0x18],
+            [0x11, 0x12],
+        ]);
 
         var mapping = new Mock<IMapping>();
         mapping
@@ -89,15 +83,13 @@ public class FindByMagicByteSequenceAsync
     [Fact]
     public async Task Should_handle_unknown_file_type()
     {
-        var mismatchingFileType = new FileTypeWithStartSequences(
-            new[] { "mismatching" },
-            new[] { "mism" },
-            new[]
-            {
-                new byte[] { 0x11, 0x22 },
-                new byte[] { 0x11, 0x22, 0x44, 0x55 }
-            }
-        );
+        var mismatchingFileType = new FileByteFilter(
+            ["mismatching"],
+            ["mism"]
+        ).StartsWithAnyOf([
+            [0x11, 0x22],
+            [0x11, 0x22, 0x44, 0x55]
+        ]);
 
         var mapping = new Mock<IMapping>();
         mapping
@@ -148,28 +140,22 @@ public class FindByMagicByteSequenceAsync
     [Fact]
     public async Task Should_find_by_magic_byte_sequence_with_offset()
     {
-        var matchingFileType = new FileType(
-            new[] { "matching" },
-            new[] { "mtch" },
-            new[]
-            {
-                new byte[] { 0x11, 0x12, 0x19, 0x20 },
-                new byte[] { 0x11, 0x12, 0x18 },
-                new byte[] { 0x11, 0x12 },
-            },
-            2
-        );
+        var matchingFileType = new FileByteFilter(
+            ["matching"],
+            ["mtch"]
+        ).StartsWithAnyOf([
+            [0x11, 0x12, 0x19, 0x20],
+            [0x11, 0x12, 0x18],
+            [0x11, 0x12],
+        ]);
 
-        var mismatchingFileType = new FileType(
-            new[] { "mismatching" },
-            new[] { "mism" },
-            new[]
-            {
-                new byte[] { 0x11, 0x22 },
-                new byte[] { 0x11, 0x22, 0x44, 0x55 }
-            },
-            2
-        );
+        var mismatchingFileType = new FileByteFilter(
+            ["mismatching"],
+            ["mism"]
+        ).StartsWithAnyOf([
+            [0x11, 0x22],
+            [0x11, 0x22, 0x44, 0x55]
+        ]);
 
         var mapping = new Mock<IMapping>();
         mapping
@@ -189,16 +175,13 @@ public class FindByMagicByteSequenceAsync
     [Fact]
     public async Task Should_handle_unknown_file_type_by_offset_in_type()
     {
-        var mismatchingFileType = new FileType(
-            new[] { "mismatching" },
-            new[] { "mism" },
-            new[]
-            {
-                new byte[] { 0x11, 0x22 },
-                new byte[] { 0x11, 0x22, 0x44, 0x55 }
-            },
-            2
-        );
+        var mismatchingFileType = new FileByteFilter(
+            ["mismatching"],
+            ["mism"]
+        ).StartsWithAnyOf([
+            [0x11, 0x22],
+            [0x11, 0x22, 0x44, 0x55]
+        ]);
 
         var mapping = new Mock<IMapping>();
         mapping
@@ -217,16 +200,13 @@ public class FindByMagicByteSequenceAsync
     [Fact]
     public async Task Should_handle_unknown_file_type_by_offset_in_stream()
     {
-        var mismatchingFileType = new FileType(
-            new[] { "mismatching" },
-            new[] { "mism" },
-            new[]
-            {
-                new byte[] { 0x11, 0x22 },
-                new byte[] { 0x11, 0x22, 0x44, 0x55 }
-            },
-            0
-        );
+        var mismatchingFileType = new FileByteFilter(
+            ["mismatching"],
+            ["mism"]
+        ).StartsWithAnyOf([
+            [0x11, 0x22],
+            [0x11, 0x22, 0x44, 0x55]
+        ]);
 
         var mapping = new Mock<IMapping>();
         mapping

@@ -59,12 +59,11 @@ public class FindFileTypeForFormFile
 
     private static IFormFile ProvideGifFile(string name, string contentType)
     {
-        byte[] gifSequence = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61];
-        var fileContents = gifSequence.Concat(new byte[] { 0x11, 0x12 }).ToArray();
-        var fileStream = new MemoryStream(fileContents.ToArray());
+        byte[] gifSequence = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x11, 0x12];
+        var fileStream = new MemoryStream(gifSequence);
 
         return new FormFile(
-            new MemoryStream(fileContents.ToArray()),
+            new MemoryStream(gifSequence),
             0,
             fileStream.Length,
             name,
