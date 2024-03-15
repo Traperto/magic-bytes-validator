@@ -82,13 +82,13 @@ public class FileByteFilter : IFileType
 
     public FileByteFilter EndsWith(byte?[] bytesToCheck)
     {
-        _neededByteChecks.Add(new ByteCheck(-1, bytesToCheck));
+        _neededByteChecks.Add(new ByteCheck(-bytesToCheck.Length, bytesToCheck));
         return this;
     }
 
     public FileByteFilter EndsWithAnyOf(byte?[][] bytesToCheck)
     {
-        _oneOfEachByteChecks.Add(bytesToCheck.Select(byteArray => new ByteCheck(-1, byteArray)).ToArray());
+        _oneOfEachByteChecks.Add(bytesToCheck.Select(byteArray => new ByteCheck(-byteArray.Length, byteArray)).ToArray());
         return this;
     }
 
@@ -124,7 +124,7 @@ public class FileByteFilter : IFileType
     {
         // Check ending of file stream
         // since in the current format we have the fileStream Length only here calculate the offset
-        if (byteToCheck.Offset == -1)
+        if (byteToCheck.Offset < 0)
             byteToCheck.Offset = fileStreamToCheck.Length - byteToCheck.ByteArray.Length;
 
         if (fileStreamToCheck.Length - byteToCheck.Offset < byteToCheck.ByteArray.Length)
