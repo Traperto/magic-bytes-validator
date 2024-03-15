@@ -14,6 +14,7 @@ public class StreamFileTypeProvider : IStreamFileTypeProvider
     {
         return TryFindUnambiguousAsync(stream, cancellationToken);
     }
+
     public async Task<IEnumerable<IFileType>> FindAllMatchesAsync(Stream stream, CancellationToken cancellationToken)
     {
         if (stream is null)

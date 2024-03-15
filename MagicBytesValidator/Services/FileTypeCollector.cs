@@ -17,11 +17,11 @@ public static class FileTypeCollector
         }
 
         return assembly.GetTypes()
-           .Where(t => typeof(IFileType).IsAssignableFrom(t))
-           .Where(t => !t.GetTypeInfo().IsAbstract)
-           .Where(t => t.GetConstructors().Any(c => c.GetParameters().Length == 0))
-           .Select(Activator.CreateInstance)
-           .OfType<IFileType>()
-           .ToList();
+            .Where(t => typeof(IFileType).IsAssignableFrom(t))
+            .Where(t => !t.GetTypeInfo().IsAbstract)
+            .Where(t => t.GetConstructors().Any(c => c.GetParameters().Length == 0))
+            .Select(Activator.CreateInstance)
+            .OfType<IFileType>()
+            .ToList();
     }
 }

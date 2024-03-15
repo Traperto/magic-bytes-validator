@@ -7,7 +7,7 @@ public class FileByteFilter : IFileType
     private readonly List<ByteCheck> _neededByteChecks = [];
     private readonly List<ByteCheck[]> _oneOfEachByteChecks = [];
     private readonly List<byte?[]> _anywhereByteChecks = [];
-    
+
     public string[] MimeTypes { get; }
     public string[] Extensions { get; }
 
@@ -22,17 +22,17 @@ public class FileByteFilter : IFileType
         {
             throw new ArgumentEmptyException(nameof(extensions));
         }
-        
+
         MimeTypes = mimeTypes;
         Extensions = extensions;
     }
-    
+
     public class ByteCheck(int offset, byte?[] bytesToCheck)
     {
         public int Offset = offset;
         public readonly byte?[] ByteArray = bytesToCheck;
     }
-    
+
     public bool Matches(byte[] fileByteStream)
     {
         foreach (var neededByteCheck in _neededByteChecks)
@@ -40,7 +40,7 @@ public class FileByteFilter : IFileType
             if (!CheckBytes(neededByteCheck, fileByteStream))
                 return false;
         }
-        
+
         foreach (var oneOf in _oneOfEachByteChecks)
         {
             if (!oneOf.Any(byteToCheck => CheckBytes(byteToCheck, fileByteStream)))
@@ -67,25 +67,25 @@ public class FileByteFilter : IFileType
 
         return true;
     }
-    
+
     public FileByteFilter StartsWith(byte?[] bytesToCheck)
     {
         _neededByteChecks.Add(new ByteCheck(0, bytesToCheck));
         return this;
     }
-    
+
     public FileByteFilter StartsWithAnyOf(byte?[][] bytesToCheck)
     {
         _oneOfEachByteChecks.Add(bytesToCheck.Select(byteArray => new ByteCheck(0, byteArray)).ToArray());
         return this;
     }
-    
+
     public FileByteFilter EndsWith(byte?[] bytesToCheck)
     {
         _neededByteChecks.Add(new ByteCheck(-1, bytesToCheck));
         return this;
     }
-    
+
     public FileByteFilter EndsWithAnyOf(byte?[][] bytesToCheck)
     {
         _oneOfEachByteChecks.Add(bytesToCheck.Select(byteArray => new ByteCheck(-1, byteArray)).ToArray());
@@ -97,13 +97,14 @@ public class FileByteFilter : IFileType
         _anywhereByteChecks.Add(bytesToCheck);
         return this;
     }
-    
+
     public FileByteFilter Anywhere(byte?[][] bytesToCheck)
     {
         foreach (var byteArrayToCheck in bytesToCheck)
         {
             Anywhere(byteArrayToCheck);
         }
+
         return this;
     }
 
@@ -112,7 +113,7 @@ public class FileByteFilter : IFileType
         _neededByteChecks.Add(bytesToCheck);
         return this;
     }
-    
+
     public FileByteFilter SpecificAnyOf(ByteCheck[] bytesToCheck)
     {
         _oneOfEachByteChecks.Add(bytesToCheck.Select(byteArray => byteArray).ToArray());
@@ -125,7 +126,7 @@ public class FileByteFilter : IFileType
         // since in the current format we have the fileStream Length only here calculate the offset
         if (byteToCheck.Offset == -1)
             byteToCheck.Offset = fileStreamToCheck.Length - byteToCheck.ByteArray.Length;
-        
+
         if (fileStreamToCheck.Length - byteToCheck.Offset < byteToCheck.ByteArray.Length)
         {
             return false;

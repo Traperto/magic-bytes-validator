@@ -23,8 +23,8 @@ public class Mapping : IMapping
         }
 
         return _fileTypes
-           .FirstOrDefault(f => f.MimeTypes.Any(fm => fm
-               .Equals(mimeType, StringComparison.InvariantCultureIgnoreCase)));
+            .FirstOrDefault(f => f.MimeTypes.Any(fm => fm
+                .Equals(mimeType, StringComparison.InvariantCultureIgnoreCase)));
     }
 
     /// <inheritdoc />
