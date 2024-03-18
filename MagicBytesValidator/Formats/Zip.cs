@@ -9,6 +9,10 @@ public class Zip : FileByteFilter
         ["zip"]
     )
     {
+    }
+
+    public Zip(string[] mimeTypes, string[] extensions) : base(mimeTypes, extensions)
+    {
         StartsWithAnyOf([
                 [0x50, 0x4B, 0x03, 0x04],
                 [0x50, 0x4B, 0x05, 0x06],
@@ -18,9 +22,5 @@ public class Zip : FileByteFilter
                 0x50, 0x4B, null, null, null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null, 0x00, 0x00, 0x00
             ]);
-    }
-
-    public Zip(string[] mimeTypes, string[] extensions) : base(mimeTypes, extensions)
-    {
     }
 }
