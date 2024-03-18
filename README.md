@@ -80,6 +80,20 @@ mapping.Register(
 )
 ```
 
+- FileTypes with specific offset checks:
+```c#
+mapping.Register(
+    new FileByteFilter(
+        "traperto/trp",  // mime type
+        new[] { "trp" } // file extensions
+    ) {
+        // magic byte sequences
+        Specific(new ByteCheck(512, [0xFD]));
+    }
+)
+```
+ByteCheck allows for negative offset values to look for a specific offset counting from the end of file
+
 - Register a list of filetypes:
 ```c#
 mapping.Register(listOfFileTypes);

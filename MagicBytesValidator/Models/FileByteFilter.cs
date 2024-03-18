@@ -132,7 +132,7 @@ public class FileByteFilter : IFileType
         if (byteToCheck.Offset < 0)
             byteToCheck.Offset = fileStreamToCheck.Length - byteToCheck.ByteArray.Length;
 
-        if (fileStreamToCheck.Length - byteToCheck.Offset < byteToCheck.ByteArray.Length)
+        if (fileStreamToCheck.Length - Math.Abs(byteToCheck.Offset) < byteToCheck.ByteArray.Length)
         {
             return false;
         }
