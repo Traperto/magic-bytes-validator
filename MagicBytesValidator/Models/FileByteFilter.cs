@@ -15,12 +15,12 @@ public class FileByteFilter : IFileType
     {
         if (!mimeTypes.Any() || mimeTypes.Any(string.IsNullOrEmpty))
         {
-            throw new ArgumentEmptyException(nameof(mimeTypes));
+            throw new ArgumentEmptyException($"{nameof(mimeTypes)} cannot be null or empty");
         }
 
         if (!extensions.Any() || extensions.Any(string.IsNullOrEmpty))
         {
-            throw new ArgumentEmptyException(nameof(extensions));
+            throw new ArgumentEmptyException($"{nameof(extensions)} cannot be null or empty");
         }
 
         MimeTypes = mimeTypes;

@@ -1,7 +1,3 @@
-using FluentAssertions;
-using MagicBytesValidator.Formats;
-using Xunit;
-
 namespace MagicBytesValidator.Tests.Models;
 
 public class ZipMatches

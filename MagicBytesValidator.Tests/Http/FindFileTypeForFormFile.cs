@@ -1,13 +1,4 @@
-﻿using System.IO;
-using System.Linq;
-using FluentAssertions;
-using MagicBytesValidator.Exceptions.Http;
-using MagicBytesValidator.Formats;
-using MagicBytesValidator.Services.Http;
-using Microsoft.AspNetCore.Http;
-using Xunit;
-
-namespace MagicBytesValidator.Tests.Http;
+﻿namespace MagicBytesValidator.Tests.Http;
 
 public class FindFileTypeForFormFile
 {

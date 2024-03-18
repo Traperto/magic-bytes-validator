@@ -1,8 +1,4 @@
-﻿using MagicBytesValidator.CLI.Exceptions;
-using MagicBytesValidator.Services;
-using MagicBytesValidator.Services.Streams;
-
-namespace MagicBytesValidator.CLI;
+﻿namespace MagicBytesValidator.CLI;
 
 public class Program
 {
