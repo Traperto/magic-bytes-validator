@@ -16,11 +16,7 @@
         <Company>traperto GmbH</Company>
 
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-
-        <TargetFramework>net8.0</TargetFramework>
-        <LangVersion>latest</LangVersion>
-        <Nullable>enable</Nullable>
-        <WarningsAsErrors>true</WarningsAsErrors>
+        
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
