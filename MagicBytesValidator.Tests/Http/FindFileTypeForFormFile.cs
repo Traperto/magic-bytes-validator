@@ -1,51 +1,53 @@
-﻿namespace MagicBytesValidator.Tests.Http;
+﻿using MagicBytesValidator.Services.Http;
+
+namespace MagicBytesValidator.Tests.Http;
 
 public class FindFileTypeForFormFile
 {
     [Fact]
-    public void Should_find_by_extension()
+    public async Task Should_find_by_extension()
     {
         var formFile = ProvideGifFile("trp.gif", "image/gif");
 
         var sut = new FormFileTypeProvider();
 
-        var result = sut.FindFileTypeForFormFile(formFile);
+        var result = await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
 
         result.Should().BeOfType<Gif>();
     }
 
     [Fact]
-    public void Should_find_by_content_type()
+    public async Task Should_find_by_content_type()
     {
         var formFile = ProvideGifFile(string.Empty, "image/gif");
 
         var sut = new FormFileTypeProvider();
 
-        var result = sut.FindFileTypeForFormFile(formFile);
+        var result = await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
 
         result.Should().BeOfType<Gif>();
     }
 
     [Fact]
-    public void Should_return_null_on_not_found()
+    public async Task Should_return_null_on_not_found()
     {
         var formFile = ProvideGifFile(string.Empty, "trp/nms");
 
         var sut = new FormFileTypeProvider();
 
-        var result = sut.FindFileTypeForFormFile(formFile);
+        var result = await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
 
         result.Should().BeNull();
     }
 
     [Fact]
-    public void Should_throw_on_mismatch()
+    public async Task Should_throw_on_mismatch()
     {
         var formFile = ProvideGifFile("trp.gif", "image/png");
 
         var sut = new FormFileTypeProvider();
 
-        Assert.Throws<MimeTypeMismatchException>(() => sut.FindFileTypeForFormFile(formFile));
+        await Assert.ThrowsAsync<MimeTypeMismatchException>(async () => await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None));
     }
 
     private static IFormFile ProvideGifFile(string name, string contentType)

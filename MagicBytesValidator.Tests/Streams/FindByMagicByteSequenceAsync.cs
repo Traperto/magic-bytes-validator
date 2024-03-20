@@ -132,17 +132,13 @@ public class FindByMagicByteSequenceAsync
         var matchingFileType = new FileByteFilter(
             ["matching"],
             ["mtch"]
-        ).StartsWithAnyOf([
-            [0x11, 0x12, 0x19, 0x20],
-            [0x11, 0x12, 0x18],
-            [0x11, 0x12],
-        ]);
+        ).Anywhere([0x11, 0x12, 0x18]);
 
         var mismatchingFileType = new FileByteFilter(
             ["mismatching"],
             ["mism"]
         ).StartsWithAnyOf([
-            [0x11, 0x22],
+            [0x11, 0x22, 0xFF],
             [0x11, 0x22, 0x44, 0x55]
         ]);
 
@@ -168,7 +164,6 @@ public class FindByMagicByteSequenceAsync
             ["mismatching"],
             ["mism"]
         ).StartsWithAnyOf([
-            [0x11, 0x22],
             [0x11, 0x22, 0x44, 0x55]
         ]);
 
