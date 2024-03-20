@@ -1,17 +1,13 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Gz : FileType
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+public class Gz : FileByteFilter
 {
     public Gz() : base(
-        new[] { "application/gzip" },
-        new[] { "gz" },
-        new[]
-        {
-            new byte[] { 31, 139 }
-        }
+        ["application/gzip"],
+        ["gz"]
     )
     {
+        StartsWith([0x1F, 0x8B]);
     }
 }

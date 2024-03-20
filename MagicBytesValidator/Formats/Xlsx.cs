@@ -1,19 +1,18 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Xlsx : FileType
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+public class Xlsx : Zip
 {
     public Xlsx() : base(
-        new[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
-        new[] { "xlsx" },
-        new[]
-        {
-            new byte[] { 80, 75, 3, 4 },
-            new byte[] { 80, 75, 5, 6 },
-            new byte[] { 80, 75, 7, 8 }
-        }
+        ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+        ["xlsx"]
     )
     {
+        StartsWith([0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00])
+            .Anywhere([
+                0x78, 0x6c, 0x2f, 0x5f, 0x72, 0x65, 0x6c, 0x73, 0x2f, 0x77, 0x6f, 0x72, 0x6b, 0x62, 0x6f, 0x6f, 0x6b, 0x2e,
+                0x78, 0x6d, 0x6c, 0x2e, 0x72, 0x65, 0x6c, 0x73
+            ]);
     }
 }

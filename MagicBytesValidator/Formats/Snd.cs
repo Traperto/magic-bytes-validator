@@ -1,18 +1,14 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Snd : FileType
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+public class Snd : FileByteFilter
 {
     public Snd() : base(
-        new[] { "audio/basic" },
-        new[] { "snd", "au" },
-        new[]
-        {
-            new byte[] { 56, 83, 86, 88 },
-            new byte[] { 65, 73, 70, 70 }
-        }
+        ["audio/basic"],
+        ["snd", "au"]
     )
     {
+        StartsWith([0x2E, 0x73, 0x6E, 0x64]);
     }
 }

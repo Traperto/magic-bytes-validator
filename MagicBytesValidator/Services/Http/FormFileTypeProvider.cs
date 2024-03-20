@@ -1,37 +1,27 @@
-﻿using System.Linq;
-using MagicBytesValidator.Exceptions.Http;
-using MagicBytesValidator.Models;
-using Microsoft.AspNetCore.Http;
+﻿namespace MagicBytesValidator.Services.Http;
 
-namespace MagicBytesValidator.Services.Http;
-
-/// <summary>
-/// Service that provides file information for given <see cref="IFormFile"/>.
-/// </summary>
+/// <inheritdoc />
 public class FormFileTypeProvider : IFormFileTypeProvider
 {
     private const char _FILE_EXTENSION_SEPARATOR = '.';
 
-    /// <summary>
-    /// Mapping that is used for providing information
-    /// </summary>
+    /// <inheritdoc />
     public Mapping Mapping { get; }
 
-    public FormFileTypeProvider(Mapping? mapping = null)
+    private readonly IValidator _validator;
+
+    public FormFileTypeProvider(
+        Mapping? mapping = null,
+        IValidator? validator = null
+    )
     {
         Mapping = mapping ?? new Mapping();
+        _validator = validator ?? new Validator(Mapping);
     }
 
-    /// <summary>
-    /// Tries to find matching FileType for given IFormFile.
-    /// </summary>
-    /// <param name="formFile">Given IFormFile</param>
-    /// <returns>Matching FileType (if known)</returns>
-    /// <exception cref="MimeTypeMismatchException">
-    /// When file-type by extension and given content-type (IFormFile.ContentType) differ.
-    /// In this case, someone <i>could</i> try to circumvent the validation.
-    /// </exception>
-    public FileType? FindFileTypeForFormFile(IFormFile formFile)
+    /// <inheritdoc />
+    [Obsolete("Use FindValidatedType instead.")]
+    public IFileType? FindFileTypeForFormFile(IFormFile formFile)
     {
         /* If the form file has a file name with an extension, we'll try to find the fileType by it first.
          * If not, we'll try loading it by its given content type. */
@@ -54,5 +44,47 @@ public class FormFileTypeProvider : IFormFileTypeProvider
         }
 
         return fileType;
+    }
+
+    /// <inheritdoc />
+    public async Task<IFileType?> FindValidatedTypeAsync(
+        IFormFile formFile,
+        Stream? formFileStream,
+        CancellationToken cancellationToken
+    )
+    {
+        var fileTypeByContentType = Mapping.FindByMimeType(formFile.ContentType);
+        if (fileTypeByContentType is null)
+        {
+            return null;
+        }
+
+        var fileTypeByExtension = formFile.FileName.Contains(_FILE_EXTENSION_SEPARATOR)
+            ? Mapping.FindByExtension(formFile.FileName.Split(_FILE_EXTENSION_SEPARATOR).Last())
+            : null;
+
+        if (
+            fileTypeByExtension is not null
+            && fileTypeByExtension.GetType() != fileTypeByContentType.GetType()
+        )
+        {
+            /* This can only occur if the given form file has a file name and its extension indicates a different
+             * MIME type as (also given) Content-Type. This *can* be an indicator that someone is trying to
+             * mess with us. As we are a bit paranoid and also the file type is not unambiguous, we'll throw. */
+            throw new MimeTypeMismatchException(fileTypeByExtension.MimeTypes, formFile.ContentType);
+        }
+
+        var contentIsValid = await _validator.IsValidAsync(
+            formFileStream ?? formFile.OpenReadStream(),
+            fileTypeByContentType,
+            cancellationToken
+        );
+
+        if (!contentIsValid)
+        {
+            throw new MimeTypeMismatchException(formFile.ContentType);
+        }
+
+        return fileTypeByContentType;
     }
 }

@@ -1,19 +1,17 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Docx : FileType
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+public class Docx : Zip
 {
     public Docx() : base(
-        new[] { "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
-        new[] { "docx" },
-        new[]
-        {
-            new byte[] { 80, 75, 3, 4 },
-            new byte[] { 80, 75, 5, 6 },
-            new byte[] { 80, 75, 7, 8 }
-        }
-    )
+        ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+        ["docx"])
     {
+        StartsWith([0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00])
+            .Anywhere([
+                0x77, 0x6F, 0x72, 0x64, 0x2F, 0x5F, 0x72, 0x65, 0x6C, 0x73, 0x2F, 0x64, 0x6F,
+                0x63, 0x75, 0x6D, 0x65, 0x6E, 0x74, 0x2E, 0x78, 0x6D, 0x6C, 0x2E, 0x72, 0x65, 0x6C, 0x73
+            ]);
     }
 }

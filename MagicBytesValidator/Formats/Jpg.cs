@@ -1,19 +1,15 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Jpg : FileType
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+public class Jpg : FileByteFilter
 {
     public Jpg() : base(
-        new[] { "image/jpeg" },
-        new[] { "jpg", "jpeg", "jpe" },
-        new[]
-        {
-            new byte[] { 255, 216, 255 },
-            new byte[] { 73, 70, 0, 1 },
-            new byte[] { 105, 102, 0, 0 }
-        }
+        ["image/jpeg"],
+        ["jpg", "jpeg", "jpe", "jif", "jfif", "jfi"]
     )
     {
+        StartsWith([0xFF, 0xD8, 0xFF])
+            .EndsWith([0xFF, 0xD9]);
     }
 }

@@ -1,70 +1,62 @@
-﻿using System.IO;
-using System.Linq;
-using FluentAssertions;
-using MagicBytesValidator.Exceptions.Http;
-using MagicBytesValidator.Formats;
-using MagicBytesValidator.Services.Http;
-using Microsoft.AspNetCore.Http;
-using Xunit;
+﻿using MagicBytesValidator.Services.Http;
 
 namespace MagicBytesValidator.Tests.Http;
 
-public class FormFileTypeProviderTests
+public class FindFileTypeForFormFile
 {
     [Fact]
-    public void Should_find_by_extension()
+    public async Task Should_find_by_extension()
     {
         var formFile = ProvideGifFile("trp.gif", "image/gif");
 
         var sut = new FormFileTypeProvider();
 
-        var result = sut.FindFileTypeForFormFile(formFile);
+        var result = await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
 
         result.Should().BeOfType<Gif>();
     }
 
     [Fact]
-    public void Should_find_by_content_type()
+    public async Task Should_find_by_content_type()
     {
         var formFile = ProvideGifFile(string.Empty, "image/gif");
 
         var sut = new FormFileTypeProvider();
 
-        var result = sut.FindFileTypeForFormFile(formFile);
+        var result = await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
 
         result.Should().BeOfType<Gif>();
     }
 
     [Fact]
-    public void Should_return_null_on_not_found()
+    public async Task Should_return_null_on_not_found()
     {
         var formFile = ProvideGifFile(string.Empty, "trp/nms");
 
         var sut = new FormFileTypeProvider();
 
-        var result = sut.FindFileTypeForFormFile(formFile);
+        var result = await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
 
         result.Should().BeNull();
     }
 
     [Fact]
-    public void Should_throw_on_mismatch()
+    public async Task Should_throw_on_mismatch()
     {
         var formFile = ProvideGifFile("trp.gif", "image/png");
 
         var sut = new FormFileTypeProvider();
 
-        Assert.Throws<MimeTypeMismatchException>(() => sut.FindFileTypeForFormFile(formFile));
+        await Assert.ThrowsAsync<MimeTypeMismatchException>(async () => await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None));
     }
 
     private static IFormFile ProvideGifFile(string name, string contentType)
     {
-        var fileTypeGif = new Gif();
-        var fileContents = fileTypeGif.MagicByteSequences.First().Concat(new byte[] { 0x11, 0x12 }).ToArray();
-        var fileStream = new MemoryStream(fileContents);
+        byte[] gifSequence = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x11, 0x12];
+        var fileStream = new MemoryStream(gifSequence);
 
         return new FormFile(
-            new MemoryStream(fileContents.ToArray()),
+            new MemoryStream(gifSequence),
             0,
             fileStream.Length,
             name,
