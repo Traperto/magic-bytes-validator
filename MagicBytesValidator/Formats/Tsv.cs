@@ -1,17 +1,15 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Tsv : FileType
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+/// <see href="https://en.wikipedia.org/wiki/MPEG_transport_stream"/>
+public class Tsv : FileByteFilter
 {
     public Tsv() : base(
-        new[] { "text/tab-separated-values" },
-        new[] { "tsv" },
-        new[]
-        {
-            new byte[] { 71 }
-        }
+        ["video/mp2t"],
+        ["ts", "tsv", "tsa", "mpg", "mpeg"]
     )
     {
+        StartsWith([0x47]);
     }
 }

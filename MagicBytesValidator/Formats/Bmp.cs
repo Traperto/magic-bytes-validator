@@ -1,17 +1,14 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Bmp : FileType
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+public class Bmp : FileByteFilter
 {
     public Bmp() : base(
-        new[] { "image/bmp" },
-        new[] { "bmp" },
-        new[]
-        {
-            new byte[] { 66, 77 }
-        }
+        ["image/bmp"],
+        ["bmp"]
     )
     {
+        StartsWith([0x42, 0x4D]);
     }
 }

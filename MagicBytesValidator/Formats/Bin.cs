@@ -1,19 +1,18 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Bin : FileType
+// TODO: Check if correct
+
+public class Bin : FileByteFilter
 {
     public Bin() : base(
-        new[] { "application/octet-stream" },
-        new[] { "bin", "file", "com", "class", "ini" },
-        new[]
-        {
-            new byte[] { 83, 80, 48, 49 },
-            new byte[] { 201 },
-            new byte[] { 202, 254, 186, 190 }
-        }
+        ["application/octet-stream"],
+        ["bin", "file", "com", "class", "ini"]
     )
     {
+        StartsWithAnyOf([
+            [0x53, 0x50, 0x30, 0x31],
+            [0xC9],
+            [0xCA, 0xFE, 0xBA, 0xBE]
+        ]);
     }
 }

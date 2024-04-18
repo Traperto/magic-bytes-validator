@@ -1,17 +1,21 @@
-using MagicBytesValidator.Models;
-
 namespace MagicBytesValidator.Formats;
 
-public class Pdf : FileType
+/// <see href="https://en.wikipedia.org/wiki/List_of_file_signatures"/>
+/// <see href="https://www.garykessler.net/library/file_sigs.html"/>
+public class Pdf : FileByteFilter
 {
     public Pdf() : base(
-        new[] { "application/pdf" },
-        new[] { "pdf" },
-        new[]
-        {
-            new byte[] { 0x25, 0x50, 0x44, 0x46 }
-        }
+        ["application/pdf"],
+        ["pdf"]
     )
     {
+        StartsWith([0x25, 0x50, 0x44, 0x46, 0x2D])
+            .EndsWithAnyOf(
+            [
+                [0x0A, 0x25, 0x25, 0x25, 0x45, 0x4F, 0x46],
+                [0x0A, 0x25, 0x25, 0x45, 0x4F, 0x46, 0x0A],
+                [0x0D, 0x0A, 0x25, 0x25, 0x45, 0x4F, 0x46, 0x0D, 0x0A],
+                [0x0D, 0x25, 0x25, 0x45, 0x4F, 0x46, 0x0D]
+            ]);
     }
 }

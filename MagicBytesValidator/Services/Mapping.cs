@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using MagicBytesValidator.Exceptions;
-using MagicBytesValidator.Models;
-
-namespace MagicBytesValidator.Services;
+﻿namespace MagicBytesValidator.Services;
 
 /// <inheritdoc />
 public class Mapping : IMapping
 {
     /// <inheritdoc />
-    public IReadOnlyList<FileType> FileTypes => _fileTypes;
+    public IReadOnlyList<IFileType> FileTypes => _fileTypes;
 
-    private readonly List<FileType> _fileTypes = FileTypeCollector.CollectFileTypes().ToList();
+    private readonly List<IFileType> _fileTypes;
+
+    public Mapping()
+    {
+        var currentAssembly = typeof(Mapping).GetTypeInfo().Assembly;
+        _fileTypes = FileTypeCollector.CollectFileTypesForAssembly(currentAssembly).ToList();
+    }
 
     /// <inheritdoc />
-    public FileType? FindByMimeType(string mimeType)
+    public IFileType? FindByMimeType(string mimeType)
     {
         if (string.IsNullOrEmpty(mimeType))
         {
@@ -29,7 +28,7 @@ public class Mapping : IMapping
     }
 
     /// <inheritdoc />
-    public FileType? FindByExtension(string extension)
+    public IFileType? FindByExtension(string extension)
     {
         if (string.IsNullOrEmpty(extension))
         {
@@ -43,25 +42,18 @@ public class Mapping : IMapping
     }
 
     /// <inheritdoc />
-    public void Register(FileType fileType)
+    public void Register(IFileType fileType)
     {
         _fileTypes.Add(fileType);
     }
 
-    public void Register(IReadOnlyList<FileType> fileTypes)
+    public void Register(IEnumerable<IFileType> fileTypes)
     {
-        if (!fileTypes.Any())
-        {
-            return;
-        }
-
         _fileTypes.AddRange(fileTypes);
     }
 
     public void Register(Assembly assembly)
     {
-        var fileTypes = FileTypeCollector.CollectFileTypes(assembly).ToList();
-
-        _fileTypes.AddRange(fileTypes);
+        _fileTypes.AddRange(FileTypeCollector.CollectFileTypesForAssembly(assembly));
     }
 }
