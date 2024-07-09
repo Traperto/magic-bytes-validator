@@ -11,3 +11,7 @@ updates:
       interval: "daily"
     reviewers:
       - "niklas-schmidt-traperto"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
