@@ -12,6 +12,7 @@
             TobiasJanssen NiklasSchmidt MaximilianBreuker
         </PackageTags>
         <RepositoryUrl>https://github.com/Traperto/magic-bytes-validator</RepositoryUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryType>git</RepositoryType>
         <Company>traperto GmbH</Company>
 
@@ -22,6 +23,7 @@
 
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+        <None Include="../README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
 </Project>
