@@ -1,10 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicBytesValidator", "MagicBytesValidator\MagicBytesValidator.csproj", "{E944E89C-D807-45B8-9173-33DD42116BB3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicBytesValidator.Tests", "MagicBytesValidator.Tests\MagicBytesValidator.Tests.csproj", "{B23AB832-C861-448A-A44F-DC46E1884FB0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicBytesValidator.CLI", "MagicBytesValidator.CLI\MagicBytesValidator.CLI.csproj", "{1B36073D-9033-4E57-82F8-37810880450D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicBytesValidator.Tools", "MagicBytesValidator.Tools\MagicBytesValidator.Tools.csproj", "{01F437D7-D727-4975-8D04-469AE89B76AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +27,9 @@ Global
 		{1B36073D-9033-4E57-82F8-37810880450D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B36073D-9033-4E57-82F8-37810880450D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B36073D-9033-4E57-82F8-37810880450D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01F437D7-D727-4975-8D04-469AE89B76AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01F437D7-D727-4975-8D04-469AE89B76AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01F437D7-D727-4975-8D04-469AE89B76AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01F437D7-D727-4975-8D04-469AE89B76AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
