@@ -10,7 +10,7 @@ updates:
     schedule:
       interval: "daily"
     reviewers:
-      - "niklas-schmidt-traperto"
+      - "cus-dbc-laika"
     groups:
       dependencies:
         patterns:
