@@ -11,7 +11,7 @@ public class FileByteFilterMatches
 
         pdf.Matches(pdfTestData).Should().BeTrue();
     }
-    
+
     [Fact]
     public void Should_not_match_pdf()
     {
@@ -21,7 +21,7 @@ public class FileByteFilterMatches
 
         pdf.Matches(pdfTestData).Should().BeFalse();
     }
-    
+
     [Fact]
     public void Should_match_ppt()
     {
@@ -37,7 +37,7 @@ public class FileByteFilterMatches
         {
             pdfTestData[startIndex] = startingData[startIndex];
         }
-        
+
         // Content of ppt file at offset 512
         for (var endIndex = 0; endIndex < offsetData.Length; endIndex++)
         {
@@ -46,7 +46,7 @@ public class FileByteFilterMatches
 
         pdf.Matches(pdfTestData).Should().BeTrue();
     }
-    
+
     [Fact]
     public void Should_not_match_offset_ppt()
     {
@@ -63,7 +63,7 @@ public class FileByteFilterMatches
         {
             pdfTestData[startIndex] = startingData[startIndex];
         }
-        
+
         // Content of ppt file at offset 512
         for (var endIndex = 0; endIndex < offsetData.Length; endIndex++)
         {
@@ -72,7 +72,7 @@ public class FileByteFilterMatches
 
         pdf.Matches(pdfTestData).Should().BeFalse("Starting data correct but data at offset 512 invalid");
     }
-    
+
     [Fact]
     public void Should_not_match_start_ppt()
     {
@@ -88,7 +88,7 @@ public class FileByteFilterMatches
         {
             pdfTestData[startIndex] = startingData[startIndex];
         }
-        
+
         // Content of ppt file at offset 512
         for (var endIndex = 0; endIndex < offsetData.Length; endIndex++)
         {
@@ -97,7 +97,7 @@ public class FileByteFilterMatches
 
         pdf.Matches(pdfTestData).Should().BeFalse("Offset data valid but incorrect starting data");
     }
-    
+
     [Fact]
     public void Should_match_xlsx()
     {
@@ -116,12 +116,12 @@ public class FileByteFilterMatches
 
         xlsx.Matches(xlsxTestData).Should().BeTrue();
     }
-    
+
     [Fact]
     public void Should_not_match_xlsx()
     {
         var xlsx = new Xlsx();
-        
+
         var xlsxTestData = new byte[]
         {
             0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00, 0xFF, 0xFF, 0xFF, 0x78, 0x6c,
@@ -130,5 +130,18 @@ public class FileByteFilterMatches
         };
 
         xlsx.Matches(xlsxTestData).Should().BeFalse("specific byte array has invalid bytes");
+    }
+
+    [Fact]
+    public void Should_match_heic()
+    {
+        var heic = new Heic();
+
+        var testStream = new byte[]
+        {
+            0x00,0x00,0x00,0x18, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63
+        };
+
+        heic.Matches(testStream).Should().BeTrue();
     }
 }
