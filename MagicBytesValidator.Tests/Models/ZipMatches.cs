@@ -21,6 +21,6 @@ public class ZipMatches
     {
         var sut = new Zip();
 
-        sut.Matches(EmptyZipFileContent).Should().BeTrue();
+        Assert.True(sut.Matches(EmptyZipFileContent));
     }
 }

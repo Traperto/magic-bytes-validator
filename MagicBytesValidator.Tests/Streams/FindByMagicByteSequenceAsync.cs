@@ -35,8 +35,8 @@ public class FindByMagicByteSequenceAsync
 
         var result = await sut.FindByMagicByteSequenceAsync(stream, CancellationToken.None);
 
-        result.Should().Be(matchingFileType);
-        result.Should().NotBe(mismatchingFileType);
+        Assert.Same(matchingFileType, result);
+        Assert.NotSame(mismatchingFileType, result);
     }
 
     [Fact]
@@ -65,8 +65,8 @@ public class FindByMagicByteSequenceAsync
 
         var result = await sut.FindByMagicByteSequenceAsync(stream, CancellationToken.None);
 
-        result.Should().Be(matchingFileType);
-        stream.Position.Should().Be(1);
+        Assert.Same(matchingFileType, result);
+        Assert.Equal(1, stream.Position);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class FindByMagicByteSequenceAsync
 
         var result = await sut.FindByMagicByteSequenceAsync(stream, CancellationToken.None);
 
-        result.Should().BeNull();
+        Assert.Null(result);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class FindByMagicByteSequenceAsync
 
         var result = await sut.FindByMagicByteSequenceAsync(stream, CancellationToken.None);
 
-        result.Should().BeNull();
+        Assert.Null(result);
     }
 
     [Fact]
@@ -153,8 +153,8 @@ public class FindByMagicByteSequenceAsync
 
         var result = await sut.FindByMagicByteSequenceAsync(stream, CancellationToken.None);
 
-        result.Should().Be(matchingFileType);
-        result.Should().NotBe(mismatchingFileType);
+        Assert.Same(matchingFileType, result);
+        Assert.NotSame(mismatchingFileType, result);
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class FindByMagicByteSequenceAsync
 
         var result = await sut.FindByMagicByteSequenceAsync(stream, CancellationToken.None);
 
-        result.Should().BeNull();
+        Assert.Null(result);
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public class FindByMagicByteSequenceAsync
 
         var result = await sut.FindByMagicByteSequenceAsync(stream, CancellationToken.None);
 
-        result.Should().BeNull();
+        Assert.Null(result);
     }
 }
 #pragma warning restore CS0618 // Type or member is obsolete

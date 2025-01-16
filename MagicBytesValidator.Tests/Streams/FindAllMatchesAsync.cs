@@ -34,9 +34,9 @@ public class FindAllMatchesAsync
         var result = (await sut.FindAllMatchesAsync(stream, CancellationToken.None))
            .ToList();
 
-        result.Should().HaveCount(2);
-        result.Should().Contain(matchingFileType1);
-        result.Should().Contain(matchingFileType2);
+        Assert.Equal(2, result.Count);
+        Assert.Contains(matchingFileType1, result);
+        Assert.Contains(matchingFileType2, result);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class FindAllMatchesAsync
 
         _ = await sut.FindAllMatchesAsync(stream, CancellationToken.None);
 
-        stream.Position.Should().Be(1);
+        Assert.Equal(1, stream.Position);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class FindAllMatchesAsync
 
         var result = await sut.FindAllMatchesAsync(stream, CancellationToken.None);
 
-        result.Should().BeEmpty();
+        Assert.Empty(result);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class FindAllMatchesAsync
 
         var result = await sut.FindAllMatchesAsync(stream, CancellationToken.None);
 
-        result.Should().BeEmpty();
+        Assert.Empty(result);
     }
 
     [Fact]

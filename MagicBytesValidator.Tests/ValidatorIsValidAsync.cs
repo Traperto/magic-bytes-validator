@@ -27,7 +27,7 @@ public class ValidatorIsValidAsync
         var valid = await _validator.IsValidAsync(_gifMemoryStream, _fileTypeGif, CancellationToken.None);
 
         // Assert
-        valid.Should().BeTrue();
+        Assert.True(valid);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class ValidatorIsValidAsync
         var invalidExtension = await _validator.IsValidAsync(_gifMemoryStream, _fileTypePng, CancellationToken.None);
 
         // Assert
-        invalidExtension.Should().BeFalse();
+        Assert.False(invalidExtension);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class ValidatorIsValidAsync
         var inValidMimeType = await _validator.IsValidAsync(_gifMemoryStream, _fileTypePng, CancellationToken.None);
 
         // Assert
-        inValidMimeType.Should().BeFalse();
+        Assert.False(inValidMimeType);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class ValidatorIsValidAsync
         var isValidMimeType = await _validator.IsValidAsync(stream, new Mp4(), CancellationToken.None);
 
         // Assert
-        isValidMimeType.Should().BeTrue();
+        Assert.True(isValidMimeType);
     }
 
     [Fact]
@@ -70,6 +70,6 @@ public class ValidatorIsValidAsync
         var invalidMagicByte = await _validator.IsValidAsync(_pngMemoryStream, _fileTypeGif, CancellationToken.None);
 
         // Assert
-        invalidMagicByte.Should().BeFalse();
+        Assert.False(invalidMagicByte);
     }
 }

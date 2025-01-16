@@ -15,7 +15,7 @@ public class FindValidatedTypeAsync
             CancellationToken.None
         );
 
-        result.Should().BeOfType<Gif>();
+        Assert.IsType<Gif>(result);
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class FindValidatedTypeAsync
             CancellationToken.None
         );
 
-        result.Should().BeOfType<Gif>();
+        Assert.IsType<Gif>(result);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class FindValidatedTypeAsync
             CancellationToken.None
         );
 
-        result.Should().BeNull();
+        Assert.Null(result);
     }
 
     [Fact]

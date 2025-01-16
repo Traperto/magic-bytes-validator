@@ -33,8 +33,8 @@ public class TryFindUnambiguousAsync
 
         var result = await sut.TryFindUnambiguousAsync(stream, CancellationToken.None);
 
-        result.Should().Be(matchingFileType);
-        result.Should().NotBe(mismatchingFileType);
+        Assert.Same(matchingFileType, result);
+        Assert.NotSame(mismatchingFileType, result);
     }
 
     [Fact]
@@ -63,8 +63,8 @@ public class TryFindUnambiguousAsync
 
         var result = await sut.TryFindUnambiguousAsync(stream, CancellationToken.None);
 
-        result.Should().Be(matchingFileType);
-        stream.Position.Should().Be(1);
+        Assert.Same(matchingFileType, result);
+        Assert.Equal(1, stream.Position);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class TryFindUnambiguousAsync
 
         var result = await sut.TryFindUnambiguousAsync(stream, CancellationToken.None);
 
-        result.Should().BeNull();
+        Assert.Null(result);
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class TryFindUnambiguousAsync
 
         var result = await sut.TryFindUnambiguousAsync(stream, CancellationToken.None);
 
-        result.Should().BeNull();
+        Assert.Null(result);
     }
 
     [Fact]
