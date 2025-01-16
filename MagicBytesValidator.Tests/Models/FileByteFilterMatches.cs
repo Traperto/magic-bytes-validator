@@ -9,7 +9,7 @@ public class FileByteFilterMatches
 
         var pdfTestData = "%PDF-\n%%EOF\n"u8.ToArray();
 
-        pdf.Matches(pdfTestData).Should().BeTrue();
+        Assert.True(pdf.Matches(pdfTestData));
     }
 
     [Fact]
@@ -19,7 +19,7 @@ public class FileByteFilterMatches
 
         var pdfTestData = "%PDDF-\n%%EEOF\n"u8.ToArray();
 
-        pdf.Matches(pdfTestData).Should().BeFalse();
+        Assert.False(pdf.Matches(pdfTestData));
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class FileByteFilterMatches
             pdfTestData[endIndex + 512] = offsetData[endIndex];
         }
 
-        pdf.Matches(pdfTestData).Should().BeTrue();
+        Assert.True(pdf.Matches(pdfTestData));
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class FileByteFilterMatches
             pdfTestData[endIndex + 512] = offsetData[endIndex];
         }
 
-        pdf.Matches(pdfTestData).Should().BeFalse("Starting data correct but data at offset 512 invalid");
+        Assert.False(pdf.Matches(pdfTestData), "Starting data correct but data at offset 512 invalid");
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class FileByteFilterMatches
             pdfTestData[endIndex + 512] = offsetData[endIndex];
         }
 
-        pdf.Matches(pdfTestData).Should().BeFalse("Offset data valid but incorrect starting data");
+        Assert.False(pdf.Matches(pdfTestData), "Offset data valid but incorrect starting data");
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class FileByteFilterMatches
             0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00
         };
 
-        xlsx.Matches(xlsxTestData).Should().BeTrue();
+        Assert.True(xlsx.Matches(xlsxTestData));
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class FileByteFilterMatches
             0x6f, 0x6b, 0x2e, 0x78, 0xFF, 0xFF, 0xFF, 0x72, 0x65, 0x6c, 0x73, 0xFF, 0xFF
         };
 
-        xlsx.Matches(xlsxTestData).Should().BeFalse("specific byte array has invalid bytes");
+        Assert.False(xlsx.Matches(xlsxTestData), "specific byte array has invalid bytes");
     }
 
     [Fact]
@@ -142,6 +142,6 @@ public class FileByteFilterMatches
             0x00,0x00,0x00,0x18, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63
         };
 
-        heic.Matches(testStream).Should().BeTrue();
+        Assert.True(heic.Matches(testStream));
     }
 }

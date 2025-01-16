@@ -1,6 +1,4 @@
-﻿using MagicBytesValidator.Services.Http;
-
-namespace MagicBytesValidator.Tests.Http;
+﻿namespace MagicBytesValidator.Tests.Http;
 
 public class FindFileTypeForFormFile
 {
@@ -13,7 +11,7 @@ public class FindFileTypeForFormFile
 
         var result = await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
 
-        result.Should().BeOfType<Gif>();
+        Assert.IsType<Gif>(result);
     }
 
     [Fact]
@@ -25,7 +23,7 @@ public class FindFileTypeForFormFile
 
         var result = await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
 
-        result.Should().BeOfType<Gif>();
+        Assert.IsType<Gif>(result);
     }
 
     [Fact]
@@ -37,7 +35,7 @@ public class FindFileTypeForFormFile
 
         var result = await sut.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
 
-        result.Should().BeNull();
+        Assert.Null(result);
     }
 
     [Fact]
