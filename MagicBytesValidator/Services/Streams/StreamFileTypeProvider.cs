@@ -33,12 +33,16 @@ public class StreamFileTypeProvider : IStreamFileTypeProvider
         return _mapping.FileTypes.Where(fileType => fileType.Matches(streamBuffer));
     }
 
-    public async Task<IFileType?> TryFindUnambiguousAsync(Stream stream, CancellationToken cancellationToken)
+    public async Task<IEnumerable<IFileType>> FindCloseMatchesAsync(Stream stream, CancellationToken cancellationToken)
     {
         var matches = (await FindAllMatchesAsync(stream, cancellationToken)).ToList();
 
-        return matches.Count == 1
-            ? matches.First()
-            : null;
+        return matches.Where(m1 =>
+            matches.All(m2 => !m2.GetType().IsSubclassOf(m1.GetType())));
+    }
+
+    public async Task<IFileType?> TryFindUnambiguousAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        return (await FindCloseMatchesAsync(stream, cancellationToken)).FirstOrDefault();
     }
 }

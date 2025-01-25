@@ -17,11 +17,21 @@ public interface IStreamFileTypeProvider
     Task<IEnumerable<IFileType>> FindAllMatchesAsync(Stream stream, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Tries to determine an unambiguous <see cref="IFileType"/> that matches a given file stream.
-    /// Returns <see cref="IFileType"/> in case it's the only (registered) type that matches.
-    /// As soon as multiple file types match the file, null will be returned.
-    /// If no type matches, null will be returned.
+    /// Determines <see cref="IFileType"/>s that match a given file stream.
+    /// If the result contains both a base file type (such as <see cref="Formats.Zip"/>)
+    /// and a specific variant of this base (such as <see cref="Formats.Docx"/>, which is 
+    /// based on a zip archive), the base type will be omitted and only the specific type
+    /// is included as it is "closer" to the file content.
     /// </summary>
-    /// <returns>Only one matching (known) <see cref="IFileType"/> that matches.</returns>
+    Task<IEnumerable<IFileType>> FindCloseMatchesAsync(Stream stream, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Determines close <see cref="IFileType"/>s that match a given file stream and - if only
+    /// one file type matches - return this type or otherwise null. Note that, if a stream
+    /// matches both a base file type such as <see cref="Formats.Zip"/>) and a specific variant
+    /// of this base (such as <see cref="Formats.Docx"/>, the base type won't be taken into
+    /// account (as the specific type is "closer" to the file content).
+    /// See also <see cref="FindCloseMatchesAsync"/>.
+    /// </summary>
     Task<IFileType?> TryFindUnambiguousAsync(Stream stream, CancellationToken cancellationToken);
 }
