@@ -18,21 +18,28 @@ public class Program
                .GetResult()
                .ToList();
 
+            var closestMatches = streamFileTypeProvider
+                .FindCloseMatchesAsync(file, CancellationToken.None)
+                .GetAwaiter()
+                .GetResult()
+                .ToList();
+
             if (matches.Count == 0)
             {
                 Console.WriteLine("No matches.");
                 return;
             }
 
-            Console.WriteLine($"{"FileType",-10}| {"Extensions",-40}| {"MIME Types",-80}");
-            Console.WriteLine(new string('-', 130));
+            Console.WriteLine($"{"FileType",-10}| {"Extensions",-40}| {"MIME Types",-80}| {"Indirect",-8}");
+            Console.WriteLine(new string('-', 145));
 
             foreach (var match in matches)
             {
                 var mimeTypeList = string.Join(", ", match.MimeTypes);
                 var extensionList = string.Join(", ", match.Extensions);
+                var indirect = closestMatches.All(c => c.GetType() != match.GetType()) ? "Yes" : string.Empty;
 
-                Console.WriteLine($"{match.GetType().Name,-10}| {extensionList,-40}| {mimeTypeList,-80}");
+                Console.WriteLine($"{match.GetType().Name,-10}| {extensionList,-40}| {mimeTypeList,-80}| {indirect,-8}");
             }
 
             Console.WriteLine();
