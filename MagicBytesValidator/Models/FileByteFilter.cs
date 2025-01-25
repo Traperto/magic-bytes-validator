@@ -2,7 +2,7 @@ namespace MagicBytesValidator.Models;
 
 // TODO: currently Anywhere() doesnt support null bytes in Array
 
-public class FileByteFilter : IFileType
+public abstract class FileByteFilter : IFileType
 {
     private readonly List<ByteCheck> _neededByteChecks = [];
     private readonly List<ByteCheck[]> _oneOfEachByteChecks = [];
@@ -66,7 +66,7 @@ public class FileByteFilter : IFileType
 
             if (!found)
             {
-                return false;   
+                return false;
             }
         }
 
