@@ -7,16 +7,16 @@ The existing `IFileType`s can be expanded in various ways.
 - Install nuget package into your project:
 
 ```powershell
-Install-Package MagicBytesValidator -Version 2.1.1
+Install-Package MagicBytesValidator -Version 2.1.2
 ```
 
 ```bash
-dotnet add package MagicBytesValidator --version 2.1.1
+dotnet add package MagicBytesValidator --version 2.1.2
 ```
 
 - Reference in your csproj:
 ```xml
-<PackageReference Include="MagicBytesValidator" Version="2.1.1" />
+<PackageReference Include="MagicBytesValidator" Version="2.1.2" />
 ```
 
 ### How to use it?
