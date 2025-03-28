@@ -29,7 +29,7 @@ public class FindFileTypeForFormFile
     [Fact]
     public async Task Should_return_null_on_not_found()
     {
-        var formFile = ProvideGifFile(string.Empty, "trp/nms");
+        var formFile = ProvideGifFile(string.Empty, "trp/ls");
 
         var sut = new FormFileTypeProvider();
 
