@@ -1,0 +1,7 @@
+# Global owners
+# Will be requested for review if no later rule matches
+* @kryptobi 
+
+# Owners for C#-Code
+*.cs @kryptobi @TeQ2102 @maxbreuker
+
