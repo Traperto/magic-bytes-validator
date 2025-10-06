@@ -13,13 +13,8 @@ public class Jpg : FileByteFilter
          * - Image data must stop with trailer 0xFF 0xD9
          * - JPEG may contain metadata after trailer.
          *   - Currently available: Samsung specific metadata (ending on "SEFT") */
-       
-        // TODO: We might remove the `EndsWithAnyOf` as metadata can be quite diverse.
+        
         StartsWith([0xFF, 0xD8, 0xFF])
-            .Anywhere([0xFF, 0xD9])
-            .EndsWithAnyOf([
-                [0xFF, 0xD9],
-                [0x53, 0x45, 0x46, 0x54]
-            ]);
+            .Anywhere([0xFF, 0xD9]);
     }
 }
