@@ -19,19 +19,13 @@ public class MappingRegister
     [Fact]
     public void Should_register_list_filetype()
     {
-        var cusDbcLaikaFileType = new TestFileType(
-            ["traperto/laikaschmidt"],
-            ["ls"]
-        ).StartsWith([0x6e, 0x69, 0x6b, 0x6c, 0x61, 0x73, 0x73, 0x63, 0x68, 0x6d, 0x69, 0x64, 0x74]);
-
         var kryptobiFileType = new TestFileType(
             ["traperto/tobiasjanssen"],
             ["tjn"]
         ).StartsWith([0x74, 0x6f, 0x62, 0x69, 0x61, 0x73, 0x6a, 0x61, 0x6e, 0x73, 0x73, 0x65, 0x6e]);
 
-        _mapping.Register([cusDbcLaikaFileType, kryptobiFileType]);
+        _mapping.Register([kryptobiFileType]);
         Assert.Contains(kryptobiFileType, _mapping.FileTypes);
-        Assert.Contains(cusDbcLaikaFileType, _mapping.FileTypes);
     }
 
     [Fact]

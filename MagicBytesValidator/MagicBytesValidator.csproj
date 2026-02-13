@@ -9,7 +9,7 @@
         <PackageProjectUrl>https://github.com/Traperto/magic-bytes-validator/blob/main/README.md</PackageProjectUrl>
         <PackageTags>mime mimetype mimetypes magic magicbyte magicbytes extension extensions file
             fileextension traperto trapertoGmbh
-            TobiasJanssen LaikaSchmidt MaximilianBreuker
+            TobiasJanssen MaximilianBreuker
         </PackageTags>
         <RepositoryUrl>https://github.com/Traperto/magic-bytes-validator</RepositoryUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
