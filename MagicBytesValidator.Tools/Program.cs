@@ -50,7 +50,7 @@ public class Program
                           - help
                             Shows this help
 
-                          (traperto GmbH, 2024)
+                          (traperto GmbH, 2026)
                           """);
     }
 }
