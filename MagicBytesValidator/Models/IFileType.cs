@@ -21,5 +21,5 @@ public interface IFileType
     /// <summary>
     /// Returns whether a given file (as byte array) matches the file type
     /// </summary>
-    public bool Matches(byte[] fileByteStream);
+    public bool Matches(byte[] fileByteStream, FileByteType type = FileByteType.Lazy);
 }
