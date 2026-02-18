@@ -14,8 +14,8 @@ public class Validator : IValidator
    public async Task<bool> IsValidAsync(
       Stream fileStream,
       IFileType fileType,
-      FileByteType validationType = FileByteType.Strict,
-      CancellationToken cancellationToken = default
+      CancellationToken cancellationToken,
+      FileByteType validationType = FileByteType.Strict
    )
    {
       var previousStreamPosition = fileStream.Position;

@@ -72,8 +72,8 @@ public class FormFileTypeProvider : IFormFileTypeProvider
       var contentIsValid = await _validator.IsValidAsync(
          formFileStream ?? formFile.OpenReadStream(),
          fileTypeByContentType,
-         validationType,
-         cancellationToken
+         cancellationToken,
+         validationType
       );
 
       return !contentIsValid
