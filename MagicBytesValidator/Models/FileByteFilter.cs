@@ -1,385 +1,275 @@
 namespace MagicBytesValidator.Models;
 
-// TODO: currently Anywhere() doesnt support null bytes in Array
-
 public abstract class FileByteFilter : IFileType
 {
-    private readonly List<ByteCheck> _neededByteChecks = [];
-    private readonly List<ByteCheck[]> _oneOfEachByteChecks = [];
-    private readonly List<byte?[]> _anywhereByteChecks = [];
-    private readonly List<TailContainsCheck> _tailContainsChecks = [];
+   private readonly FileByteCheck _baseFileByteChecks = new();
+   private readonly FileByteCheck _strictFileByteChecks = new();
+   private readonly FileByteCheck _lazyFileByteChecks = new();
 
-    private readonly List<ByteCheck> _neededByteChecksStrict = [];
-    private readonly List<ByteCheck[]> _oneOfEachByteChecksStrict = [];
-    private readonly List<byte?[]> _anywhereByteChecksStrict = [];
-    private readonly List<TailContainsCheck> _tailContainsChecksStrict = [];
+   public string[] MimeTypes { get; }
+   public string[] Extensions { get; }
 
-    private readonly List<ByteCheck> _neededByteChecksDefault = [];
-    private readonly List<ByteCheck[]> _oneOfEachByteChecksDefault = [];
-    private readonly List<byte?[]> _anywhereByteChecksDefault = [];
-    private readonly List<TailContainsCheck> _tailContainsChecksDefault = [];
+   protected FileByteFilter(
+      string[] mimeTypes,
+      string[] extensions)
+   {
+      if (!mimeTypes.Any() || mimeTypes.Any(string.IsNullOrEmpty))
+      {
+         throw new ArgumentEmptyException($"{nameof(mimeTypes)} cannot be null or empty");
+      }
 
-    private sealed record TailContainsCheck(int LastNBytes, byte?[] Pattern);
+      if (!extensions.Any() || extensions.Any(string.IsNullOrEmpty))
+      {
+         throw new ArgumentEmptyException($"{nameof(extensions)} cannot be null or empty");
+      }
 
-    private readonly FileByteType _defaultType;
+      MimeTypes = mimeTypes;
+      Extensions = extensions;
+   }
 
-    public string[] MimeTypes { get; }
-    public string[] Extensions { get; }
+   public class ByteCheck(int offset, byte?[] bytesToCheck)
+   {
+      public readonly int Offset = offset;
+      public readonly byte?[] ByteArray = bytesToCheck;
+   }
 
-    protected FileByteFilter(string[] mimeTypes, string[] extensions, FileByteType type = FileByteType.Strict)
-    {
-        if (!mimeTypes.Any() || mimeTypes.Any(string.IsNullOrEmpty))
-        {
-            throw new ArgumentEmptyException($"{nameof(mimeTypes)} cannot be null or empty");
-        }
+   private sealed class TailContainsCheck(int lastNBytes, byte?[] pattern)
+   {
+      public int LastNBytes { get; } = lastNBytes;
+      public byte?[] Pattern { get; } = pattern;
+   }
 
-        if (!extensions.Any() || extensions.Any(string.IsNullOrEmpty))
-        {
-            throw new ArgumentEmptyException($"{nameof(extensions)} cannot be null or empty");
-        }
+   private sealed class FileByteCheck
+   {
+      public List<ByteCheck> Needed { get; } = [];
+      public List<ByteCheck[]> AnyOf { get; } = [];
+      public List<byte?[]> Anywhere { get; } = [];
+      public List<TailContainsCheck> TailContains { get; } = [];
 
-        MimeTypes = mimeTypes;
-        Extensions = extensions;
-        _defaultType = type;
-    }
+      /* A file matches only if:
+          - every Needed check matches at its fixed offset,
+          - for each AnyOf-group at least one alternative matches,
+          - every Anywhere-pattern occurs somewhere in the stream (null bytes act as wildcards),
+          - every TailContains check finds its pattern within the last bytes. */
+      public bool Matches(byte[] fileByteStream)
+      {
+         return Needed.All(check => CheckBytes(check, fileByteStream))
+                && AnyOf.All(group => group.Any(check => CheckBytes(check, fileByteStream)))
+                && Anywhere.All(pattern => ContainsPatternAnywhere(pattern, fileByteStream))
+                && TailContains.All(check => CheckTailContains(check, fileByteStream));
+      }
+   }
 
-    public class ByteCheck(int offset, byte?[] bytesToCheck)
-    {
-        public int Offset = offset;
-        public readonly byte?[] ByteArray = bytesToCheck;
-    }
+   public bool Matches(
+      byte[] fileByteStream,
+      FileByteType type = FileByteType.Strict)
+   {
+      ArgumentNullException.ThrowIfNull(fileByteStream);
 
-    public bool Matches(byte[] fileByteStream, FileByteType type = FileByteType.Lazy)
-    {
-        foreach (var neededByteCheck in _neededByteChecks)
-        {
-            if (!CheckBytes(neededByteCheck, fileByteStream))
-            {
-                return false;
-            }
-        }
+      // Basic rules must always match; then type-specific rules.
+      return _baseFileByteChecks.Matches(fileByteStream)
+             && GetChecksByType(type).Matches(fileByteStream);
+   }
 
-        foreach (var oneOf in _oneOfEachByteChecks)
-        {
-            if (!oneOf.Any(byteToCheck => CheckBytes(byteToCheck, fileByteStream)))
-            {
-                return false;
-            }
-        }
+   public FileByteFilter StartsWith(
+      byte?[] bytesToCheck,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-        foreach (var byteCheckWithoutOffset in _anywhereByteChecks)
-        {
-            var found = false;
+      GetChecksByType(type).Needed.Add(new ByteCheck(0, bytesToCheck));
+      return this;
+   }
 
-            for (var index = 1; index <= fileByteStream.Length; index++)
-            {
-                if (byteCheckWithoutOffset.Cast<byte>()
-                    .SequenceEqual(fileByteStream.Skip(index).Take(byteCheckWithoutOffset.Length)))
-                {
-                    found = true;
-                    break;
-                }
-            }
+   public FileByteFilter StartsWithAnyOf(
+      byte?[][] bytesToCheck,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-            if (!found)
-            {
-                return false;
-            }
-        }
+      GetChecksByType(type)
+         .AnyOf
+         .Add(bytesToCheck.Select(byteArray => new ByteCheck(0, byteArray)).ToArray());
 
-        foreach (var tc in _tailContainsChecks)
-        {
-            if (!CheckTailContains(tc, fileByteStream))
-            {
-                return false;
-            }
-        }
+      return this;
+   }
 
-        if (type == FileByteType.Strict)
-        {
-            foreach (var neededByteCheck in _neededByteChecksStrict)
-            {
-                if (!CheckBytes(neededByteCheck, fileByteStream))
-                {
-                    return false;
-                }
-            }
+   public FileByteFilter EndsWith(
+      byte?[] bytesToCheck,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-            foreach (var oneOf in _oneOfEachByteChecksStrict)
-            {
-                if (!oneOf.Any(byteToCheck => CheckBytes(byteToCheck, fileByteStream)))
-                {
-                    return false;
-                }
-            }
+      GetChecksByType(type).Needed.Add(new ByteCheck(-bytesToCheck.Length, bytesToCheck));
+      return this;
+   }
 
-            foreach (var byteCheckWithoutOffset in _anywhereByteChecksStrict)
-            {
-                var found = false;
+   public FileByteFilter EndsWithAnyOf(
+      byte?[][] bytesToCheck,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-                for (var index = 1; index <= fileByteStream.Length; index++)
-                {
-                    if (byteCheckWithoutOffset.Cast<byte>()
-                        .SequenceEqual(fileByteStream.Skip(index).Take(byteCheckWithoutOffset.Length)))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
+      GetChecksByType(type)
+         .AnyOf
+         .Add(bytesToCheck.Select(byteArray => new ByteCheck(-byteArray.Length, byteArray)).ToArray());
 
-                if (!found)
-                {
-                    return false;
-                }
-            }
+      return this;
+   }
 
-            foreach (var tc in _tailContainsChecksStrict)
-            {
-                if (!CheckTailContains(tc, fileByteStream))
-                {
-                    return false;
-                }
-            }
+   public FileByteFilter Anywhere(
+      byte?[] bytesToCheck,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-            return true;
-        }
+      GetChecksByType(type).Anywhere.Add(bytesToCheck);
+      return this;
+   }
 
-        if (type == FileByteType.Lazy)
-        {
-            foreach (var neededByteCheck in _neededByteChecksDefault)
-            {
-                if (!CheckBytes(neededByteCheck, fileByteStream))
-                {
-                    return false;
-                }
-            }
+   public FileByteFilter Anywhere(
+      byte?[][] bytesToCheck,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-            foreach (var oneOf in _oneOfEachByteChecksDefault)
-            {
-                if (!oneOf.Any(byteToCheck => CheckBytes(byteToCheck, fileByteStream)))
-                {
-                    return false;
-                }
-            }
+      foreach (var byteArrayToCheck in bytesToCheck)
+      {
+         Anywhere(byteArrayToCheck, type);
+      }
 
-            foreach (var byteCheckWithoutOffset in _anywhereByteChecksDefault)
-            {
-                var found = false;
+      return this;
+   }
 
-                for (var index = 1; index <= fileByteStream.Length; index++)
-                {
-                    if (byteCheckWithoutOffset.Cast<byte>()
-                        .SequenceEqual(fileByteStream.Skip(index).Take(byteCheckWithoutOffset.Length)))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
+   public FileByteFilter Specific(
+      ByteCheck bytesToCheck,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-                if (!found)
-                {
-                    return false;
-                }
-            }
+      GetChecksByType(type).Needed.Add(bytesToCheck);
+      return this;
+   }
 
-            foreach (var tc in _tailContainsChecksDefault)
-            {
-                if (!CheckTailContains(tc, fileByteStream))
-                {
-                    return false;
-                }
-            }
-        }
+   public FileByteFilter SpecificAnyOf(
+      ByteCheck[] bytesToCheck,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-        return true;
-    }
+      GetChecksByType(type).AnyOf.Add(bytesToCheck.ToArray());
+      return this;
+   }
 
-    private List<ByteCheck> SelectNeededChecks(FileByteType? type)
-    {
-        if (type == FileByteType.Strict)
-        {
-            return _neededByteChecksStrict;
-        }
+   public FileByteFilter TailContains(
+      int lastNBytes,
+      byte?[] bytesToCheck,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-        if (type == FileByteType.Lazy)
-        {
-            return _neededByteChecksDefault;
-        }
+      GetChecksByType(type).TailContains.Add(new TailContainsCheck(lastNBytes, bytesToCheck));
+      return this;
+   }
 
-        return _neededByteChecks;
-    }
+   private FileByteCheck GetChecksByType(FileByteType? type)
+   {
+      return type switch
+      {
+         FileByteType.Strict => _strictFileByteChecks,
+         FileByteType.Lazy => _lazyFileByteChecks,
+         _ => _baseFileByteChecks
+      };
+   }
 
-    private List<ByteCheck[]> SelectOneOfEachChecks(FileByteType? type)
-    {
-        if (type == FileByteType.Strict)
-        {
-            return _oneOfEachByteChecksStrict;
-        }
+   private static bool CheckBytes(ByteCheck byteToCheck, byte[] fileStreamToCheck)
+   {
+      var offset = byteToCheck.Offset >= 0
+         ? byteToCheck.Offset
+         : fileStreamToCheck.Length - byteToCheck.ByteArray.Length;
 
-        if (type == FileByteType.Lazy)
-        {
-            return _oneOfEachByteChecksDefault;
-        }
+      if (offset < 0 || fileStreamToCheck.Length - offset < byteToCheck.ByteArray.Length)
+      {
+         return false;
+      }
 
-        return _oneOfEachByteChecks;
-    }
+      for (var index = 0; index < byteToCheck.ByteArray.Length; index++)
+      {
+         var expected = byteToCheck.ByteArray[index];
 
-    private List<byte?[]> SelectAnywhereChecks(FileByteType? type)
-    {
-        if (type == FileByteType.Strict)
-        {
-            return _anywhereByteChecksStrict;
-        }
-
-        if (type == FileByteType.Lazy)
-        {
-            return _anywhereByteChecksDefault;
-        }
-
-        return _anywhereByteChecks;
-    }
-
-    private List<TailContainsCheck> SelectTailContainsChecks(FileByteType? type)
-    {
-        if (type == FileByteType.Strict)
-        {
-            return _tailContainsChecksStrict;
-        }
-
-        if (type == FileByteType.Lazy)
-        {
-            return _tailContainsChecksDefault;
-        }
-
-        return _tailContainsChecks;
-    }
-
-    public FileByteFilter StartsWith(byte?[] bytesToCheck, FileByteType? type = null)
-    {
-        SelectNeededChecks(type).Add(new ByteCheck(0, bytesToCheck));
-        return this;
-    }
-
-    public FileByteFilter StartsWithAnyOf(byte?[][] bytesToCheck, FileByteType? type = null)
-    {
-        SelectOneOfEachChecks(type).Add(bytesToCheck.Select(byteArray => new ByteCheck(0, byteArray)).ToArray());
-        return this;
-    }
-
-    public FileByteFilter EndsWith(byte?[] bytesToCheck, FileByteType? type = null)
-    {
-        SelectNeededChecks(type).Add(new ByteCheck(-bytesToCheck.Length, bytesToCheck));
-        return this;
-    }
-
-    public FileByteFilter EndsWithAnyOf(byte?[][] bytesToCheck, FileByteType? type = null)
-    {
-        SelectOneOfEachChecks(type).Add(bytesToCheck.Select(byteArray => new ByteCheck(-byteArray.Length, byteArray)).ToArray());
-        return this;
-    }
-
-    public FileByteFilter Anywhere(byte?[] bytesToCheck, FileByteType? type = null)
-    {
-        SelectAnywhereChecks(type).Add(bytesToCheck);
-        return this;
-    }
-
-    public FileByteFilter Anywhere(byte?[][] bytesToCheck, FileByteType? type = null)
-    {
-        foreach (var byteArrayToCheck in bytesToCheck)
-        {
-            Anywhere(byteArrayToCheck, type);
-        }
-
-        return this;
-    }
-
-    public FileByteFilter Specific(ByteCheck bytesToCheck, FileByteType? type = null)
-    {
-        SelectNeededChecks(type).Add(bytesToCheck);
-        return this;
-    }
-
-    public FileByteFilter SpecificAnyOf(ByteCheck[] bytesToCheck, FileByteType? type = null)
-    {
-        SelectOneOfEachChecks(type).Add(bytesToCheck.Select(byteCheck => byteCheck).ToArray());
-        return this;
-    }
-
-    public FileByteFilter TailContains(int lastNBytes, byte?[] bytesToCheck, FileByteType? type = null)
-    {
-        SelectTailContainsChecks(type).Add(new TailContainsCheck(lastNBytes, bytesToCheck));
-        return this;
-    }
-
-    private bool CheckBytes(ByteCheck byteToCheck, byte[] fileStreamToCheck)
-    {
-        // Check ending of file stream
-        // since in the current format we have the fileStream Length only here calculate the offset
-        if (byteToCheck.Offset < 0)
-        {
-            byteToCheck.Offset = fileStreamToCheck.Length - byteToCheck.ByteArray.Length;
-        }
-
-        if (fileStreamToCheck.Length - Math.Abs(byteToCheck.Offset) < byteToCheck.ByteArray.Length)
-        {
+         if (expected.HasValue && fileStreamToCheck[offset + index] != expected.Value)
+         {
             return false;
-        }
+         }
+      }
 
-        foreach (var (sequenceByte, index) in byteToCheck.ByteArray.AsIndexed())
-        {
-            if (sequenceByte == null)
-            {
-                continue;
-            }
+      return true;
+   }
 
-            if (sequenceByte != fileStreamToCheck[byteToCheck.Offset + index])
-            {
-                return false;
-            }
-        }
+   private static bool ContainsPatternAnywhere(
+      byte?[] pattern,
+      byte[] fileStreamToCheck)
+   {
+      if (pattern.Length == 0)
+      {
+         return true;
+      }
 
-        return true;
-    }
+      if (fileStreamToCheck.Length < pattern.Length)
+      {
+         return false;
+      }
 
-    private static bool CheckTailContains(TailContainsCheck check, byte[] fileStreamToCheck)
-    {
-        var pattern = check.Pattern;
-
-        if (pattern.Length == 0)
-        {
+      for (var offset = 0; offset <= fileStreamToCheck.Length - pattern.Length; offset++)
+      {
+         if (MatchesPatternAt(fileStreamToCheck, offset, pattern))
+         {
             return true;
-        }
+         }
+      }
 
-        var start = Math.Max(0, fileStreamToCheck.Length - check.LastNBytes);
-        var tailLength = fileStreamToCheck.Length - start;
+      return false;
+   }
 
-        if (tailLength < pattern.Length)
-        {
+   private static bool MatchesPatternAt(
+      byte[] fileStreamToCheck,
+      int offset,
+      byte?[] pattern)
+   {
+      for (var index = 0; index < pattern.Length; index++)
+      {
+         var expectedByte = pattern[index];
+
+         if (expectedByte.HasValue && fileStreamToCheck[offset + index] != expectedByte.Value)
+         {
             return false;
-        }
+         }
+      }
 
-        for (var tailOffset = 0; tailOffset <= tailLength - pattern.Length; tailOffset++)
-        {
-            var ok = true;
+      return true;
+   }
 
-            for (var patternIndex = 0; patternIndex < pattern.Length; patternIndex++)
-            {
-                var b = pattern[patternIndex];
+   private static bool CheckTailContains(
+      TailContainsCheck check,
+      byte[] fileStreamToCheck)
+   {
+      var pattern = check.Pattern;
+      var start = Math.Max(0, fileStreamToCheck.Length - check.LastNBytes);
+      var tailLength = fileStreamToCheck.Length - start;
 
-                if (b.HasValue && fileStreamToCheck[start + tailOffset + patternIndex] != b.Value)
-                {
-                    ok = false;
-                    break;
-                }
-            }
+      if (tailLength < pattern.Length)
+      {
+         return false;
+      }
 
-            if (ok)
-            {
-                return true;
-            }
-        }
+      for (var offset = start; offset <= fileStreamToCheck.Length - pattern.Length; offset++)
+      {
+         if (MatchesPatternAt(fileStreamToCheck, offset, pattern))
+         {
+            return true;
+         }
+      }
 
-        return false;
-    }
+      return false;
+   }
 }
