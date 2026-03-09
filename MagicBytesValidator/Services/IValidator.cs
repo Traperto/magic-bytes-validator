@@ -10,5 +10,10 @@ public interface IValidator
     /// <summary>
     /// Validates a given file-Stream against a given FileType and returns if the Stream is valid or not.
     /// </summary>
-    Task<bool> IsValidAsync(Stream fileStream, IFileType fileType, CancellationToken cancellationToken);
+    Task<bool> IsValidAsync(
+       Stream fileStream,
+       IFileType fileType,
+       CancellationToken cancellationToken,
+       FileByteType validationType = FileByteType.Strict
+    );
 }

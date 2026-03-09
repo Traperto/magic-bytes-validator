@@ -23,6 +23,69 @@ public class FileByteFilterMatches
     }
 
     [Fact]
+    public void Should_match_pdf_with_trailing_bytes_in_default_mode()
+    {
+       var pdf = new Pdf();
+
+       var pdfTestData = "%PDF-\n%%EOF\nTRAILING"u8.ToArray();
+
+       Assert.True(pdf.Matches(pdfTestData, FileByteType.Lazy));
+    }
+
+    [Fact]
+    public void Should_not_match_pdf_with_trailing_bytes_in_strict_mode()
+    {
+       var pdf = new Pdf();
+
+       var pdfTestData = "%PDF-\n%%EOF\nTRAILING"u8.ToArray();
+
+       Assert.False(pdf.Matches(pdfTestData, FileByteType.Strict));
+    }
+
+    [Fact]
+    public void Should_not_match_pdf_when_eof_is_not_within_last_1024_bytes_in_default_mode()
+    {
+       var pdf = new Pdf();
+
+       var prefix = "%PDF-\n"u8.ToArray();
+       var eof = "%%EOF\n"u8.ToArray();
+
+       // put EOF early, then add >1024 bytes afterwards so it falls outside the last 1024 bytes
+       var trailing = new byte[1100];
+       for (var i = 0; i < trailing.Length; i++)
+       {
+          trailing[i] = (byte)'A';
+       }
+
+       var pdfTestData = prefix
+          .Concat(eof)
+          .Concat(trailing)
+          .ToArray();
+
+       Assert.False(pdf.Matches(pdfTestData, FileByteType.Lazy));
+    }
+
+    [Fact]
+    public void Should_match_pdf_when_eof_marker_is_present_in_default_mode()
+    {
+       var pdf = new Pdf();
+
+       var pdfTestData = "%PDF-\n...%%EOF...TAIL"u8.ToArray();
+
+       Assert.True(pdf.Matches(pdfTestData, FileByteType.Lazy));
+    }
+
+    [Fact]
+    public void Should_match_pdf_in_strict_mode_when_eof_is_at_end()
+    {
+       var pdf = new Pdf();
+
+       var pdfTestData = "%PDF-\n%%EOF"u8.ToArray();
+
+       Assert.True(pdf.Matches(pdfTestData, FileByteType.Strict));
+    }
+
+    [Fact]
     public void Should_match_ppt()
     {
         var pdf = new Ppt();

@@ -7,18 +7,18 @@ The existing file types can be expanded in various ways.
 
 - Install nuget package into your project:
 
-  ```powershell
-  Install-Package MagicBytesValidator -Version 2.1.6
-  ```
+```powershell
+Install-Package MagicBytesValidator -Version 2.2.0
+```
 
-  ```bash
-  dotnet add package MagicBytesValidator --version 2.1.6
-  ```
+```bash
+dotnet add package MagicBytesValidator --version 2.2.0
+```
 
 - Reference in your csproj:
-  ```xml
-  <PackageReference Include="MagicBytesValidator" Version="2.1.6" />
-  ```
+```xml
+<PackageReference Include="MagicBytesValidator" Version="2.2.0" />
+```
 
 ### How to use
 
@@ -31,7 +31,144 @@ The existing file types can be expanded in various ways.
   var isValidPng = await validator.IsValidAsync(memoryStream, pngFileType, CancellationToken.None);
   ```
 
-- Determine and validate a file type by uploaded `IFormFile`:
+- Check a file with its stream and file type:
+```c#
+var isValid = await validator.IsValidAsync(memoryStream, fileType, CancellationToken.None);
+```
+## Validation strictness (FileByteType)
+
+Some formats support multiple validation strategies (e.g. strict vs. lazy rules).
+For this purpose, the library exposes `FileByteType`:
+
+- `FileByteType.Strict` (default)
+- `FileByteType.Lazy` (optional relaxed/lazy rules for certain formats)
+
+### Validate an uploaded IFormFile with a specific validation type
+
+The form file provider accepts an optional `validationType` parameter:
+
+```c#
+var fileType = await formFileTypeProvider.FindValidatedTypeAsync(
+    formFile,
+    null,
+    CancellationToken.None,
+    validationType: MagicBytesValidator.Models.FileByteType.Lazy
+);
+```
+
+Example using `Lazy` (lazy rules if the format supports it):
+
+```c#
+var fileType = await formFileTypeProvider.FindValidatedTypeAsync(
+    formFile,
+    null,
+    CancellationToken.None,
+    validationType: MagicBytesValidator.Models.FileByteType.Lazy
+);
+```
+
+### Validate a stream with a specific validation type
+
+The validator also accepts an optional `validationType` parameter:
+
+```c#
+var isValid = await validator.IsValidAsync(
+    memoryStream,
+    fileType,
+    CancellationToken.None,
+    validationType: MagicBytesValidator.Models.FileByteType.Strict
+);
+```
+
+Example using `Lazy`:
+
+```c#
+var isValid = await validator.IsValidAsync(
+    memoryStream,
+    fileType,
+    CancellationToken.None,
+    validationType: MagicBytesValidator.Models.FileByteType.Lazy
+);
+```
+
+> Note: If a format does not define any `Lazy`-specific checks, `Lazy` behaves like “global checks only”.
+> This keeps existing formats unchanged unless they opt into mode-specific rules.
+
+### Example: Lazy ("relaxed") PDF validation
+
+Some PDFs contain additional trailing bytes after the `%%EOF` marker. While strict validation may require the file
+to end with `%%EOF`, lazy validation can accept the `%%EOF` marker anywhere within the last 1024 bytes of the file
+(behaviour tolerated by common PDF viewers).
+
+## Expand the file type mapping
+
+- Get mapping:
+
+```csharp
+// use the validator:
+var mapping = validator.Mapping;
+
+// use the formFileTypeProvider:
+var mapping = formFileTypeProvider.Mapping;
+
+// or create a new instance of the mapping:
+var mapping = new MagicBytesValidator.Services.Mapping();
+```
+
+- Register a single `FileByteFilter`:
+
+```csharp
+mapping.Register(
+    new FileByteFilter(
+        "traperto/trp", // MIME type
+        new[] { "trp" } // file extensions
+    ) {
+        // magic byte sequences
+        StartsWith(new byte?[]
+        {
+            0x78, 0x6c, 0x2f, 0x5f, 0x72, 0x65
+        })
+        .EndsWith(new byte?[]
+        {
+            0xFF, 0xFF
+        })
+    }
+);
+```
+
+- `FileByteFilter`s with specific offset checks:
+
+```csharp
+mapping.Register(
+    new FileByteFilter(
+        "traperto/trp", // MIME type
+        new[] { "trp" } // file extensions
+    ) {
+        // magic byte sequences
+        Specific(new ByteCheck(512, new byte?[] { 0xFD }));
+    }
+);
+```
+
+`ByteCheck` allows for negative offset values to look for a specific offset counting from the end of file.
+
+### Optional: register mode-specific magic byte checks (Strict/Lazy)
+
+When configuring a `FileByteFilter`, fluent methods accept an optional `FileByteType` parameter.
+If omitted, the check is global (applies to all validation types). If specified, the check applies only
+to that validation type.
+
+Example:
+
+```csharp
+StartsWith(new byte?[] { 0x25, 0x50, 0x44, 0x46, 0x2D }) // global
+    .EndsWithAnyOf(new[]
+    {
+        new byte?[] { 0x25, 0x25, 0x45, 0x4F, 0x46 }
+    }, MagicBytesValidator.Models.FileByteType.Strict)      // strict only
+    .TailContains(1024, new byte?[] { 0x25, 0x25, 0x45, 0x4F, 0x46 },
+        MagicBytesValidator.Models.FileByteType.Lazy);   // lazy only
+```
 
   ```c#
   var formFileTypeProvider = new MagicBytesValidator.Services.Http.FormFileTypeProvider();
@@ -49,7 +186,9 @@ The existing file types can be expanded in various ways.
   }
   ```
 
-- Determine the file type of a file by its stream:
+// or create a new instance of the mapping:
+var mapping = new MagicBytesValidator.Services.Mapping();
+```
 
   ```c#
   var streamFileTypeProvider = new MagicBytesValidator.Services.Streams.StreamFileTypeProvider();
@@ -164,5 +303,5 @@ This can be useful when debugging or validating newly added FileTypes.
 ▓▓         ▓▓            traperto GmbH
 ▓▓  ▓▓▓▓▓▓▓▓▓
 ▓▓
-▓▓▓▓▓▓▓▓▓  ▓▓
+▓▓▓▓▓▓▓▓▓   ▓▓
 ```
