@@ -255,11 +255,13 @@ This can be useful when debugging or validating newly added FileTypes.
 | DOCX     | docx                                                                                                             | application/vnd.openxmlformats-officedocument.wordprocessingml.document   |
 | DXR      | dxr, dcr, dir                                                                                                    | application/x-director                                                    |
 | EXE      | exe, com, dll, drv, pif, qts, qtx , sys, acm, ax, cpl, fon, ocx, olb, scr, vbx, vxd, mui, iec, ime, rs, tsp, efi | application/x-dosexec, application/x-msdos-program                        |
+| FLAC     | flac                                                                                                             | audio/flac                                                                |
 | GIF      | gif                                                                                                              | image/gif                                                                 |
 | GZ       | gz                                                                                                               | application/gzip                                                          |
 | HEIC     | heic, heif                                                                                                       | image/heic, image/heif                                                    |
 | ICO      | ico                                                                                                              | image/x-icon                                                              |
 | JPG      | jpg, jpeg, jpe, jif, jfif, jfi                                                                                   | image/jpeg                                                                |
+| M4A      | m4a                                                                                                              | audio/mp4, audio/x-m4a                                                    |
 | MIDI     | midi, mid                                                                                                        | audio/x-midi                                                              |
 | MP3      | mp3                                                                                                              | audio/mpeg                                                                |
 | MP4      | mp4                                                                                                              | video/mp4                                                                 |
@@ -285,6 +287,7 @@ This can be useful when debugging or validating newly added FileTypes.
 | TIF      | tif, tiff                                                                                                        | image/tiff                                                                |
 | TSV      | ts, tsv, tsa, mpg, mpeg                                                                                          | video/mp2t                                                                |
 | TXT      | txt                                                                                                              | text/plain                                                                |
+| WAV      | wav                                                                                                              | audio/wav, audio/x-wav                                                    |
 | WEBM     | mkv, mka, mks, mk3d, webm                                                                                        | video/webm                                                                |
 | XLS      | xls, xla                                                                                                         | application/msexcel                                                       |
 | XLSX     | xlsx                                                                                                             | application/vnd.openxmlformats-officedocument.spreadsheetml.sheet         |
