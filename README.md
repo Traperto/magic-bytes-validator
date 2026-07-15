@@ -8,16 +8,16 @@ The existing file types can be expanded in various ways.
 - Install nuget package into your project:
 
 ```powershell
-Install-Package MagicBytesValidator -Version 2.2.1
+Install-Package MagicBytesValidator -Version 2.3.0
 ```
 
 ```bash
-dotnet add package MagicBytesValidator --version 2.2.1
+dotnet add package MagicBytesValidator --version 2.3.0
 ```
 
 - Reference in your csproj:
 ```xml
-<PackageReference Include="MagicBytesValidator" Version="2.2.1" />
+<PackageReference Include="MagicBytesValidator" Version="2.3.0" />
 ```
 
 ### How to use
