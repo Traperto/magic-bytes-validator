@@ -20,7 +20,7 @@ public class Zip : FileByteFilter
             ])
             .EndsWith([
                 0x50, 0x4B, null, null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, 0x00, 0x00, 0x00
+                null, null, null, null, null, null, null,  null, null, null
             ]);
     }
 }
