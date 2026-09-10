@@ -298,13 +298,3 @@ This can be useful when debugging or validating newly added FileTypes.
 ### License
 
 [MIT License](./LICENSE)
-
-```
-▓▓  ▓▓▓▓▓▓▓▓▓
-▓▓         ▓▓
-▓▓▓▓▓▓▓▓▓  ▓▓
-▓▓         ▓▓            traperto GmbH
-▓▓  ▓▓▓▓▓▓▓▓▓
-▓▓
-▓▓▓▓▓▓▓▓▓   ▓▓
-```
