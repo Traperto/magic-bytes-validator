@@ -44,18 +44,21 @@ public abstract class FileByteFilter : IFileType
       public List<ByteCheck> Needed { get; } = [];
       public List<ByteCheck[]> AnyOf { get; } = [];
       public List<byte?[]> Anywhere { get; } = [];
+      public List<byte?[][]> AnywhereAnyOf { get; } = [];
       public List<TailContainsCheck> TailContains { get; } = [];
 
       /* A file matches only if:
           - every Needed check matches at its fixed offset,
           - for each AnyOf-group at least one alternative matches,
           - every Anywhere-pattern occurs somewhere in the stream (null bytes act as wildcards),
+           - for each AnywhereAnyOf-group at least one anywhere-pattern occurs in the stream,
           - every TailContains check finds its pattern within the last bytes. */
       public bool Matches(byte[] fileByteStream)
       {
          return Needed.All(check => CheckBytes(check, fileByteStream))
                 && AnyOf.All(group => group.Any(check => CheckBytes(check, fileByteStream)))
                 && Anywhere.All(pattern => ContainsPatternAnywhere(pattern, fileByteStream))
+                && AnywhereAnyOf.All(group => group.Any(pattern => ContainsPatternAnywhere(pattern, fileByteStream)))
                 && TailContains.All(check => CheckTailContains(check, fileByteStream));
       }
    }
@@ -138,6 +141,21 @@ public abstract class FileByteFilter : IFileType
          Anywhere(byteArrayToCheck, type);
       }
 
+      return this;
+   }
+
+   public FileByteFilter AnywhereAnyOf(
+      byte?[][] bytesToCheck,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
+
+      if (!bytesToCheck.Any())
+      {
+         throw new ArgumentEmptyException($"{nameof(bytesToCheck)} cannot be null or empty");
+      }
+
+      GetChecksByType(type).AnywhereAnyOf.Add(bytesToCheck);
       return this;
    }
 
