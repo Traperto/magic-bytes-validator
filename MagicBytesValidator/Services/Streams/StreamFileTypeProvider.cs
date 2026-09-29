@@ -22,13 +22,7 @@ public class StreamFileTypeProvider : IStreamFileTypeProvider
             throw new ArgumentNullException(nameof(stream));
         }
 
-        var previousStreamPosition = stream.Position;
-        stream.Position = 0;
-
-        var streamBuffer = new byte[stream.Length];
-        _ = await stream.ReadAsync(streamBuffer, cancellationToken);
-
-        stream.Position = previousStreamPosition;
+        var streamBuffer = await stream.ReadAllBytesFromStartAsync(cancellationToken);
 
         return _mapping.FileTypes.Where(fileType => fileType.Matches(streamBuffer));
     }

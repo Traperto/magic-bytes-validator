@@ -18,13 +18,7 @@ public class Validator : IValidator
       FileByteType validationType = FileByteType.Strict
    )
    {
-      var previousStreamPosition = fileStream.Position;
-      fileStream.Position = 0;
-
-      var streamBuffer = new byte[fileStream.Length];
-      _ = await fileStream.ReadAsync(streamBuffer, cancellationToken);
-
-      fileStream.Position = previousStreamPosition;
+      var streamBuffer = await fileStream.ReadAllBytesFromStartAsync(cancellationToken);
 
       return fileType.Matches(streamBuffer, validationType);
    }
