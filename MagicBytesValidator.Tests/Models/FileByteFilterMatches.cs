@@ -88,77 +88,33 @@ public class FileByteFilterMatches
     [Fact]
     public void Should_match_ppt()
     {
-        var pdf = new Ppt();
+        var ppt = new Ppt();
 
-        // We need to check for an offset of 512
-        var pdfTestData = new byte[520];
-        var startingData = new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 };
-        var offsetData = new byte[] { 0xFD, 0xFF, 0xFF, 0xFF, 0x53, 0x00, 0x00, 0x00 };
+        var pptTestData = CompoundFileBuilder.Build(["PowerPoint Document", "Current User"]);
 
-        // Start of ppt file
-        for (var startIndex = 0; startIndex < startingData.Length; startIndex++)
-        {
-            pdfTestData[startIndex] = startingData[startIndex];
-        }
-
-        // Content of ppt file at offset 512
-        for (var endIndex = 0; endIndex < offsetData.Length; endIndex++)
-        {
-            pdfTestData[endIndex + 512] = offsetData[endIndex];
-        }
-
-        Assert.True(pdf.Matches(pdfTestData));
+        Assert.True(ppt.Matches(pptTestData));
     }
 
     [Fact]
-    public void Should_not_match_offset_ppt()
+    public void Should_not_match_ppt_without_powerpoint_stream()
     {
-        // Valid Start but Invalid offset Data
-        var pdf = new Ppt();
+        // Valid compound file, but without the "PowerPoint Document" stream
+        var ppt = new Ppt();
 
-        // We need to check for an offset of 512
-        var pdfTestData = new byte[520];
-        var startingData = new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 };
-        var offsetData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        var pptTestData = CompoundFileBuilder.Build(["WordDocument"]);
 
-        // Start of ppt file
-        for (var startIndex = 0; startIndex < startingData.Length; startIndex++)
-        {
-            pdfTestData[startIndex] = startingData[startIndex];
-        }
-
-        // Content of ppt file at offset 512
-        for (var endIndex = 0; endIndex < offsetData.Length; endIndex++)
-        {
-            pdfTestData[endIndex + 512] = offsetData[endIndex];
-        }
-
-        Assert.False(pdf.Matches(pdfTestData), "Starting data correct but data at offset 512 invalid");
+        Assert.False(ppt.Matches(pptTestData), "Compound file without PowerPoint stream is no ppt");
     }
 
     [Fact]
     public void Should_not_match_start_ppt()
     {
-        var pdf = new Ppt();
+        var ppt = new Ppt();
 
-        // We need to check for an offset of 512
-        var pdfTestData = new byte[520];
-        var startingData = new byte[] { 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD };
-        var offsetData = new byte[] { 0xFD, 0xFF, 0xFF, 0xFF, 0x53, 0x00, 0x00, 0x00 };
+        var pptTestData = CompoundFileBuilder.Build(["PowerPoint Document"]);
+        Array.Fill<byte>(pptTestData, 0xFD, 0, 8);
 
-        // Start of ppt file
-        for (var startIndex = 0; startIndex < startingData.Length; startIndex++)
-        {
-            pdfTestData[startIndex] = startingData[startIndex];
-        }
-
-        // Content of ppt file at offset 512
-        for (var endIndex = 0; endIndex < offsetData.Length; endIndex++)
-        {
-            pdfTestData[endIndex + 512] = offsetData[endIndex];
-        }
-
-        Assert.False(pdf.Matches(pdfTestData), "Offset data valid but incorrect starting data");
+        Assert.False(ppt.Matches(pptTestData), "Directory valid but incorrect starting data");
     }
 
     [Fact]

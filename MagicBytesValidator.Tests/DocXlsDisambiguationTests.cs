@@ -1,103 +1,178 @@
 namespace MagicBytesValidator.Tests;
 
+/// <summary>
+/// DOC, XLS and PPT share the OLE/CFBF header and must be told apart by their root streams (see #178).
+/// </summary>
 public class DocXlsDisambiguationTests
 {
-    private static readonly byte[] OleHeader =
-    [
-        0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1
-    ];
+    private const string SummaryInformation = "\u0005SummaryInformation";
 
     [Fact]
-    public async Task XlsWorkbookStreamName_ShouldMatchXls_AndNotDoc()
+    public async Task Word97Document_ShouldBeUnambiguouslyDoc()
     {
-        var validator = new Validator();
-        var xls = new Xls();
-        var doc = new Doc();
+        using var stream = CompoundFileBuilder.BuildStream(["WordDocument", "1Table", SummaryInformation]);
 
-        using var stream = BuildOleLikeStreamWithUtf16Marker("Workbook");
-
-        var isXls = await validator.IsValidAsync(stream, xls, CancellationToken.None);
-        stream.Position = 0;
-        var isDoc = await validator.IsValidAsync(stream, doc, CancellationToken.None);
-
-        Assert.True(isXls);
-        Assert.False(isDoc);
+        Assert.IsType<Doc>(Assert.Single(await FindCloseMatchesAsync(stream)));
     }
 
     [Fact]
-    public async Task DocWordDocumentStreamName_ShouldMatchDoc_AndNotXls()
+    public async Task Excel97Workbook_ShouldBeUnambiguouslyXls()
     {
-        var validator = new Validator();
-        var doc = new Doc();
-        var xls = new Xls();
+        using var stream = CompoundFileBuilder.BuildStream(["Workbook", SummaryInformation]);
 
-        using var stream = BuildOleLikeStreamWithUtf16Marker("WordDocument");
-
-        var isDoc = await validator.IsValidAsync(stream, doc, CancellationToken.None);
-        stream.Position = 0;
-        var isXls = await validator.IsValidAsync(stream, xls, CancellationToken.None);
-
-        Assert.True(isDoc);
-        Assert.False(isXls);
+        Assert.IsType<Xls>(Assert.Single(await FindCloseMatchesAsync(stream)));
     }
 
     [Fact]
-    public async Task LegacyXlsBookStreamName_ShouldMatchXls()
+    public async Task Excel95Book_ShouldBeUnambiguouslyXls()
     {
-        var validator = new Validator();
-        var xls = new Xls();
+        using var stream = CompoundFileBuilder.BuildStream(["Book", SummaryInformation]);
 
-        using var stream = BuildOleLikeStreamWithUtf16Marker("Book");
-
-        var isXls = await validator.IsValidAsync(stream, xls, CancellationToken.None);
-
-        Assert.True(isXls);
+        Assert.IsType<Xls>(Assert.Single(await FindCloseMatchesAsync(stream)));
     }
 
     [Fact]
-    public async Task ClassicDocOffset512Marker_ShouldMatchDoc()
+    public async Task PowerPointDocument_ShouldBeUnambiguouslyPpt()
     {
-        var validator = new Validator();
-        var doc = new Doc();
+        using var stream = CompoundFileBuilder.BuildStream(["PowerPoint Document", "Current User", SummaryInformation]);
 
-        using var stream = BuildOleLikeStreamWithOffset512Marker([0xEC, 0xA5, 0xC1, 0x00]);
-
-        var isDoc = await validator.IsValidAsync(stream, doc, CancellationToken.None);
-
-        Assert.True(isDoc);
+        Assert.IsType<Ppt>(Assert.Single(await FindCloseMatchesAsync(stream)));
     }
 
     [Fact]
-    public async Task ClassicXlsOffset512Marker_ShouldMatchXls()
+    public async Task WordDocumentWithEmbeddedWorkbook_ShouldBeUnambiguouslyDoc()
     {
+        using var stream = CompoundFileBuilder.BuildStream(
+            ["WordDocument", "1Table"],
+            ("_1234567890", ["Workbook", "\u0001Ole"])
+        );
+
+        Assert.IsType<Doc>(Assert.Single(await FindCloseMatchesAsync(stream)));
+    }
+
+    [Fact]
+    public async Task PresentationWithEmbeddedWorkbookAndDocument_ShouldBeUnambiguouslyPpt()
+    {
+        using var stream = CompoundFileBuilder.BuildStream(
+            ["PowerPoint Document", "Current User"],
+            ("MBD0001", ["Workbook"]),
+            ("MBD0002", ["WordDocument"])
+        );
+
+        Assert.IsType<Ppt>(Assert.Single(await FindCloseMatchesAsync(stream)));
+    }
+
+    [Fact]
+    public async Task StreamNamesInContent_ShouldNotBeMistakenForStreams()
+    {
+        // "Workbook" as UTF-16 text inside the document content must not turn a DOC into an XLS.
+        var bytes = CompoundFileBuilder.Build(["WordDocument"]);
+        var workbookText = System.Text.Encoding.Unicode.GetBytes("Workbook Book PowerPoint Document");
+        bytes = bytes.Concat(workbookText).ToArray();
+
+        using var stream = new MemoryStream(bytes);
+
+        Assert.IsType<Doc>(Assert.Single(await FindCloseMatchesAsync(stream)));
+    }
+
+    [Fact]
+    public async Task Issue178Xls_ShouldBeValidatedAsXls()
+    {
+        // The FAT sector at offset 512 starts with FD FF FF FF, like the file reported in #178.
+        var bytes = CompoundFileBuilder.Build(["Workbook"]);
+        Assert.Equal([0xFD, 0xFF, 0xFF, 0xFF], bytes.Skip(512).Take(4));
+
+        using var stream = new MemoryStream(bytes);
         var validator = new Validator();
-        var xls = new Xls();
 
-        using var stream = BuildOleLikeStreamWithOffset512Marker([0xFD, 0xFF, 0xFF, 0xFF, 0x24, 0x00]);
-
-        var isXls = await validator.IsValidAsync(stream, xls, CancellationToken.None);
-
-        Assert.True(isXls);
+        Assert.True(await validator.IsValidAsync(stream, new Xls(), CancellationToken.None));
+        Assert.False(await validator.IsValidAsync(stream, new Doc(), CancellationToken.None));
+        Assert.False(await validator.IsValidAsync(stream, new Ppt(), CancellationToken.None));
     }
 
-    private static MemoryStream BuildOleLikeStreamWithUtf16Marker(string marker)
+    [Fact]
+    public void StreamNames_ShouldBeComparedCaseInsensitive()
     {
-        var bytes = new byte[4096];
-        var markerBytes = System.Text.Encoding.Unicode.GetBytes(marker);
-
-        Array.Copy(OleHeader, 0, bytes, 0, OleHeader.Length);
-        Array.Copy(markerBytes, 0, bytes, 1536, markerBytes.Length);
-
-        return new MemoryStream(bytes);
+        Assert.True(new Xls().Matches(CompoundFileBuilder.Build(["WORKBOOK"])));
     }
 
-    private static MemoryStream BuildOleLikeStreamWithOffset512Marker(byte[] marker)
+    [Fact]
+    public void UnknownCompoundFile_ShouldMatchNoOfficeFormat()
     {
-        var bytes = new byte[2048];
+        var bytes = CompoundFileBuilder.Build([SummaryInformation, "__properties_version1.0"]);
 
-        Array.Copy(OleHeader, 0, bytes, 0, OleHeader.Length);
-        Array.Copy(marker, 0, bytes, 512, marker.Length);
+        Assert.False(new Doc().Matches(bytes));
+        Assert.False(new Xls().Matches(bytes));
+        Assert.False(new Ppt().Matches(bytes));
+    }
 
-        return new MemoryStream(bytes);
+    [Fact]
+    public void StreamInNestedStorageOnly_ShouldNotMatch()
+    {
+        var bytes = CompoundFileBuilder.Build([], ("Embedded", ["WordDocument"]));
+
+        Assert.False(new Doc().Matches(bytes));
+    }
+
+    [Fact]
+    public void HeaderOnly_ShouldNotMatch()
+    {
+        var bytes = CompoundFileBuilder.Signature.Concat(new byte[504]).ToArray();
+
+        Assert.False(new Doc().Matches(bytes));
+        Assert.False(new Xls().Matches(bytes));
+        Assert.False(new Ppt().Matches(bytes));
+    }
+
+    [Fact]
+    public void TruncatedFile_ShouldNotMatch()
+    {
+        var bytes = CompoundFileBuilder.Build(["WordDocument"]);
+
+        Assert.False(new Doc().Matches(bytes.Take(1024).ToArray()));
+    }
+
+    [Fact]
+    public void CyclicDirectoryChain_ShouldNotHangAndNotMatchOtherFormats()
+    {
+        var bytes = CompoundFileBuilder.Build(["WordDocument"]);
+
+        // Let the (single) directory sector 1 point to itself in the FAT.
+        BitConverter.GetBytes(1u).CopyTo(bytes, 512 + 4);
+
+        Assert.True(new Doc().Matches(bytes));
+        Assert.False(new Xls().Matches(bytes));
+    }
+
+    [Fact]
+    public void CyclicSiblingTree_ShouldNotHang()
+    {
+        var bytes = CompoundFileBuilder.Build(["WordDocument", "1Table"]);
+
+        // Entry 2 ("1Table") gets entry 1 ("WordDocument") as right sibling, closing a cycle.
+        var entry2Offset = 1024 + (2 * 128);
+        BitConverter.GetBytes(1u).CopyTo(bytes, entry2Offset + 0x48);
+
+        Assert.True(new Doc().Matches(bytes));
+    }
+
+    [Fact]
+    public void CompoundFileStreamAnyOf_ShouldRejectEmptyNames()
+    {
+        Assert.Throws<MagicBytesValidator.Exceptions.ArgumentEmptyException>(() => new StreamNameFilter([]));
+    }
+
+    private static Task<IEnumerable<IFileType>> FindCloseMatchesAsync(Stream stream)
+    {
+        return new StreamFileTypeProvider(new Mapping()).FindCloseMatchesAsync(stream, CancellationToken.None);
+    }
+
+    // Has no parameterless constructor, so assembly scanning (see MappingRegister) ignores it.
+    private sealed class StreamNameFilter : FileByteFilter
+    {
+        public StreamNameFilter(string[] streamNames) : base(["application/x-test"], ["test"])
+        {
+            CompoundFileStreamAnyOf(streamNames);
+        }
     }
 }

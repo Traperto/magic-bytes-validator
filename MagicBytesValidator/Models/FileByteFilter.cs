@@ -44,21 +44,21 @@ public abstract class FileByteFilter : IFileType
       public List<ByteCheck> Needed { get; } = [];
       public List<ByteCheck[]> AnyOf { get; } = [];
       public List<byte?[]> Anywhere { get; } = [];
-      public List<byte?[][]> AnywhereAnyOf { get; } = [];
+      public List<string[]> CompoundFileStreamAnyOf { get; } = [];
       public List<TailContainsCheck> TailContains { get; } = [];
 
       /* A file matches only if:
           - every Needed check matches at its fixed offset,
           - for each AnyOf-group at least one alternative matches,
           - every Anywhere-pattern occurs somewhere in the stream (null bytes act as wildcards),
-           - for each AnywhereAnyOf-group at least one anywhere-pattern occurs in the stream,
+          - for each CompoundFileStreamAnyOf-group the OLE root storage contains at least one of the named streams,
           - every TailContains check finds its pattern within the last bytes. */
       public bool Matches(byte[] fileByteStream)
       {
          return Needed.All(check => CheckBytes(check, fileByteStream))
                 && AnyOf.All(group => group.Any(check => CheckBytes(check, fileByteStream)))
                 && Anywhere.All(pattern => ContainsPatternAnywhere(pattern, fileByteStream))
-                && AnywhereAnyOf.All(group => group.Any(pattern => ContainsPatternAnywhere(pattern, fileByteStream)))
+                && CheckCompoundFileStreams(CompoundFileStreamAnyOf, fileByteStream)
                 && TailContains.All(check => CheckTailContains(check, fileByteStream));
       }
    }
@@ -144,18 +144,23 @@ public abstract class FileByteFilter : IFileType
       return this;
    }
 
-   public FileByteFilter AnywhereAnyOf(
-      byte?[][] bytesToCheck,
+   /// <summary>
+   /// Requires the file to be a compound file (OLE2) whose root storage contains at least one stream with one of
+   /// the given names (case-insensitive). Legacy Office formats share the same header and can only be told apart
+   /// this way.
+   /// </summary>
+   public FileByteFilter CompoundFileStreamAnyOf(
+      string[] streamNames,
       FileByteType? type = null)
    {
-      ArgumentNullException.ThrowIfNull(bytesToCheck);
+      ArgumentNullException.ThrowIfNull(streamNames);
 
-      if (!bytesToCheck.Any())
+      if (!streamNames.Any() || streamNames.Any(string.IsNullOrEmpty))
       {
-         throw new ArgumentEmptyException($"{nameof(bytesToCheck)} cannot be null or empty");
+         throw new ArgumentEmptyException($"{nameof(streamNames)} cannot be null or empty");
       }
 
-      GetChecksByType(type).AnywhereAnyOf.Add(bytesToCheck);
+      GetChecksByType(type).CompoundFileStreamAnyOf.Add(streamNames);
       return this;
    }
 
@@ -222,6 +227,20 @@ public abstract class FileByteFilter : IFileType
       }
 
       return true;
+   }
+
+   private static bool CheckCompoundFileStreams(
+      List<string[]> streamNameGroups,
+      byte[] fileStreamToCheck)
+   {
+      if (streamNameGroups.Count == 0)
+      {
+         return true;
+      }
+
+      var rootStreamNames = CompoundFileReader.ReadRootStreamNames(fileStreamToCheck);
+
+      return streamNameGroups.All(group => group.Any(rootStreamNames.Contains));
    }
 
    private static bool ContainsPatternAnywhere(

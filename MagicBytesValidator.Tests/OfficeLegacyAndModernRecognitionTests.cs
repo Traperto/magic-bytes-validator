@@ -2,11 +2,6 @@ namespace MagicBytesValidator.Tests;
 
 public class OfficeLegacyAndModernRecognitionTests
 {
-    private static readonly byte[] OleHeader =
-    [
-        0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1
-    ];
-
     [Fact]
     public async Task LegacyDocOle_ShouldMatchDoc_AndNotDocx()
     {
@@ -14,7 +9,7 @@ public class OfficeLegacyAndModernRecognitionTests
         var doc = new Doc();
         var docx = new Docx();
 
-        using var stream = BuildOleLikeStreamWithUtf16Marker("WordDocument");
+        using var stream = CompoundFileBuilder.BuildStream(["WordDocument"]);
 
         var isDoc = await validator.IsValidAsync(stream, doc, CancellationToken.None);
         stream.Position = 0;
@@ -31,7 +26,7 @@ public class OfficeLegacyAndModernRecognitionTests
         var xls = new Xls();
         var xlsx = new Xlsx();
 
-        using var stream = BuildOleLikeStreamWithUtf16Marker("Workbook");
+        using var stream = CompoundFileBuilder.BuildStream(["Workbook"]);
 
         var isXls = await validator.IsValidAsync(stream, xls, CancellationToken.None);
         stream.Position = 0;
@@ -48,7 +43,7 @@ public class OfficeLegacyAndModernRecognitionTests
         var ppt = new Ppt();
         var pptx = new Pptx();
 
-        using var stream = BuildOleLikeStreamWithOffset512Marker([0xA0, 0x46, 0x1D, 0xF0]);
+        using var stream = CompoundFileBuilder.BuildStream(["PowerPoint Document"]);
 
         var isPpt = await validator.IsValidAsync(stream, ppt, CancellationToken.None);
         stream.Position = 0;
@@ -107,27 +102,6 @@ public class OfficeLegacyAndModernRecognitionTests
 
         Assert.True(isPptx);
         Assert.False(isPpt);
-    }
-
-    private static MemoryStream BuildOleLikeStreamWithUtf16Marker(string marker)
-    {
-        var bytes = new byte[4096];
-        var markerBytes = System.Text.Encoding.Unicode.GetBytes(marker);
-
-        Array.Copy(OleHeader, 0, bytes, 0, OleHeader.Length);
-        Array.Copy(markerBytes, 0, bytes, 1536, markerBytes.Length);
-
-        return new MemoryStream(bytes);
-    }
-
-    private static MemoryStream BuildOleLikeStreamWithOffset512Marker(byte[] marker)
-    {
-        var bytes = new byte[2048];
-
-        Array.Copy(OleHeader, 0, bytes, 0, OleHeader.Length);
-        Array.Copy(marker, 0, bytes, 512, marker.Length);
-
-        return new MemoryStream(bytes);
     }
 
     private static MemoryStream BuildOfficeOpenXmlLikeZipStream(string marker)

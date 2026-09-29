@@ -2,11 +2,6 @@
 
 public class FindValidatedTypeAsync
 {
-    private static readonly byte[] OleHeader =
-    [
-        0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1
-    ];
-
     [Fact]
     public async Task Should_find_by_extension()
     {
@@ -90,7 +85,7 @@ public class FindValidatedTypeAsync
     [Fact]
     public async Task Should_validate_legacy_doc()
     {
-        var formFile = ProvideFile("legacy.doc", "application/msword", BuildLegacyDocBytes());
+        var formFile = ProvideFile("legacy.doc", "application/msword", CompoundFileBuilder.Build(["WordDocument"]));
 
         var sut = new FormFileTypeProvider();
 
@@ -106,7 +101,7 @@ public class FindValidatedTypeAsync
     [Fact]
     public async Task Should_validate_legacy_xls()
     {
-        var formFile = ProvideFile("legacy.xls", "application/msexcel", BuildLegacyXlsBytes());
+        var formFile = ProvideFile("legacy.xls", "application/msexcel", CompoundFileBuilder.Build(["Workbook"]));
 
         var sut = new FormFileTypeProvider();
 
@@ -122,7 +117,7 @@ public class FindValidatedTypeAsync
     [Fact]
     public async Task Should_validate_legacy_ppt()
     {
-        var formFile = ProvideFile("legacy.ppt", "application/vnd.ms-powerpoint", BuildLegacyPptBytes());
+        var formFile = ProvideFile("legacy.ppt", "application/vnd.ms-powerpoint", CompoundFileBuilder.Build(["PowerPoint Document"]));
 
         var sut = new FormFileTypeProvider();
 
@@ -220,39 +215,6 @@ public class FindValidatedTypeAsync
         var fileContents = gifSequence.Concat(new byte[] { 0x11, 0x12 }).ToArray();
 
         return ProvideFile(name, contentType, fileContents);
-    }
-
-    private static byte[] BuildLegacyDocBytes()
-    {
-        var bytes = new byte[4096];
-        var markerBytes = System.Text.Encoding.Unicode.GetBytes("WordDocument");
-
-        Array.Copy(OleHeader, 0, bytes, 0, OleHeader.Length);
-        Array.Copy(markerBytes, 0, bytes, 1536, markerBytes.Length);
-
-        return bytes;
-    }
-
-    private static byte[] BuildLegacyXlsBytes()
-    {
-        var bytes = new byte[4096];
-        var markerBytes = System.Text.Encoding.Unicode.GetBytes("Workbook");
-
-        Array.Copy(OleHeader, 0, bytes, 0, OleHeader.Length);
-        Array.Copy(markerBytes, 0, bytes, 1536, markerBytes.Length);
-
-        return bytes;
-    }
-
-    private static byte[] BuildLegacyPptBytes()
-    {
-        var bytes = new byte[2048];
-        var marker = new byte[] { 0xA0, 0x46, 0x1D, 0xF0 };
-
-        Array.Copy(OleHeader, 0, bytes, 0, OleHeader.Length);
-        Array.Copy(marker, 0, bytes, 512, marker.Length);
-
-        return bytes;
     }
 
     private static byte[] BuildOpenXmlBytes(string marker)
