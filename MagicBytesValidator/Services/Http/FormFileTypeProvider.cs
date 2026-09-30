@@ -79,12 +79,27 @@ public class FormFileTypeProvider : IFormFileTypeProvider
          throw new MimeTypeMismatchException(fileTypeByExtension.MimeTypes, formFile.ContentType);
       }
 
-      var contentIsValid = await _validator.IsValidAsync(
-         formFileStream ?? formFile.OpenReadStream(),
-         fileTypeByContentType,
-         cancellationToken,
-         validationType
-      );
+      /* Only dispose the stream if we opened it ourselves; a given stream belongs to the caller. */
+      var ownsStream = formFileStream is null;
+      var stream = formFileStream ?? formFile.OpenReadStream();
+
+      bool contentIsValid;
+      try
+      {
+         contentIsValid = await _validator.IsValidAsync(
+            stream,
+            fileTypeByContentType,
+            cancellationToken,
+            validationType
+         );
+      }
+      finally
+      {
+         if (ownsStream)
+         {
+            await stream.DisposeAsync();
+         }
+      }
 
       return !contentIsValid
          ? throw new MimeTypeMismatchException(formFile.ContentType)
