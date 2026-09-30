@@ -37,6 +37,8 @@ public class StreamFileTypeProvider : IStreamFileTypeProvider
 
     public async Task<IFileType?> TryFindUnambiguousAsync(Stream stream, CancellationToken cancellationToken)
     {
-        return (await FindCloseMatchesAsync(stream, cancellationToken)).FirstOrDefault();
+        var closeMatches = (await FindCloseMatchesAsync(stream, cancellationToken)).ToList();
+
+        return closeMatches.Count == 1 ? closeMatches[0] : null;
     }
 }

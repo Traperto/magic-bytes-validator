@@ -139,4 +139,50 @@ public class TryFindUnambiguousAsync
 
         Assert.Same(childFileType, result);
     }
+
+    [Fact]
+    public async Task Should_return_null_on_ambiguous_matches()
+    {
+        var firstFileType = new TestFileType().StartsWith([0x11, 0x12]);
+        var secondFileType = new TestFileType().StartsWith([0x11]);
+
+        var mapping = new Mock<IMapping>();
+        mapping
+            .SetupGet(m => m.FileTypes)
+            .Returns([firstFileType, secondFileType]);
+
+        var sut = new StreamFileTypeProvider(mapping.Object);
+
+        var stream = new MemoryStream([0x11, 0x12, 0x13]);
+
+        var result = await sut.TryFindUnambiguousAsync(stream, CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task Should_not_confuse_gif_with_transport_stream()
+    {
+        var sut = new StreamFileTypeProvider(new Mapping());
+
+        var stream = new MemoryStream([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x11, 0x12]);
+
+        var result = await sut.TryFindUnambiguousAsync(stream, CancellationToken.None);
+
+        Assert.IsType<Gif>(result);
+    }
+
+    [Fact]
+    public async Task Should_find_transport_stream()
+    {
+        var sut = new StreamFileTypeProvider(new Mapping());
+
+        var transportStream = new byte[2 * 188];
+        transportStream[0] = 0x47;
+        transportStream[188] = 0x47;
+
+        var result = await sut.TryFindUnambiguousAsync(new MemoryStream(transportStream), CancellationToken.None);
+
+        Assert.IsType<Tsv>(result);
+    }
 }

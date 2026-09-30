@@ -7,7 +7,7 @@ public class Exe : FileByteFilter
     public Exe() : base(
         ["application/x-dosexec", "application/x-msdos-program"],
         [
-            "exe", "com", "dll", "drv", "pif", "qts", "qtx ", "sys", "acm", "ax", "cpl", "fon", "ocx", "olb", "scr",
+            "exe", "com", "dll", "drv", "pif", "qts", "qtx", "sys", "acm", "ax", "cpl", "fon", "ocx", "olb", "scr",
             "vbx", "vxd", "mui", "iec", "ime", "rs", "tsp", "efi"
         ]
     )

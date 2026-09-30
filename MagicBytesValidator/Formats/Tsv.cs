@@ -7,9 +7,12 @@ public class Tsv : FileByteFilter
 {
     public Tsv() : base(
         ["video/mp2t"],
-        ["ts", "tsv", "tsa", "mpg", "mpeg"]
+        ["ts", "tsa"]
     )
     {
-        StartsWith([0x47]);
+        /* A transport stream consists of 188-byte packets that all start with the sync byte 0x47 ("G").
+         * Checking the first byte alone would also match e.g. every GIF, so we check the second packet as well. */
+        StartsWith([0x47])
+            .Specific(new ByteCheck(188, [0x47]));
     }
 }
