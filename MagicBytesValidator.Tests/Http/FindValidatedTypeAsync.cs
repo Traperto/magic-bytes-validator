@@ -51,6 +51,70 @@ public class FindValidatedTypeAsync
     }
 
     [Fact]
+    public async Task Should_ignore_trailing_extension_separator()
+    {
+        var formFile = ProvideGifFile("trp.", "image/gif");
+
+        var sut = new FormFileTypeProvider();
+
+        var result = await sut.FindValidatedTypeAsync(
+            formFile,
+            null,
+            CancellationToken.None
+        );
+
+        Assert.IsType<Gif>(result);
+    }
+
+    [Fact]
+    public async Task Should_ignore_content_type_parameters()
+    {
+        var formFile = ProvideGifFile("trp.gif", "image/gif; charset=binary");
+
+        var sut = new FormFileTypeProvider();
+
+        var result = await sut.FindValidatedTypeAsync(
+            formFile,
+            null,
+            CancellationToken.None
+        );
+
+        Assert.IsType<Gif>(result);
+    }
+
+    [Fact]
+    public async Task Should_return_null_on_missing_content_type()
+    {
+        var formFile = ProvideGifFile("trp.gif", string.Empty);
+
+        var sut = new FormFileTypeProvider();
+
+        var result = await sut.FindValidatedTypeAsync(
+            formFile,
+            null,
+            CancellationToken.None
+        );
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task Should_validate_mpeg_by_extension()
+    {
+        var formFile = ProvideFile("video.mpg", "video/mpeg", [0x00, 0x00, 0x01, 0xBA, 0x44, 0x00]);
+
+        var sut = new FormFileTypeProvider();
+
+        var result = await sut.FindValidatedTypeAsync(
+            formFile,
+            null,
+            CancellationToken.None
+        );
+
+        Assert.IsType<Mpg>(result);
+    }
+
+    [Fact]
     public async Task Should_throw_on_type_vs_name_mismatch()
     {
         var formFile = ProvideGifFile("trp.gif", "image/png");

@@ -25,9 +25,14 @@ public class FormFileTypeProvider : IFormFileTypeProvider
    {
       /* If the form file has a file name with an extension, we'll try to find the fileType by it first.
        * If not, we'll try loading it by its given content type. */
-      var fileType = formFile.FileName.Contains(FileExtensionSeparator)
-         ? Mapping.FindByExtension(formFile.FileName.Split(FileExtensionSeparator).Last())
-         : Mapping.FindByMimeType(formFile.ContentType);
+      var extension = GetExtension(formFile.FileName);
+      var mediaType = GetMediaType(formFile.ContentType);
+
+      var fileType = extension is not null
+         ? Mapping.FindByExtension(extension)
+         : mediaType is not null
+            ? Mapping.FindByMimeType(mediaType)
+            : null;
 
       if (fileType is null)
       {
@@ -35,7 +40,7 @@ public class FormFileTypeProvider : IFormFileTypeProvider
          return null;
       }
 
-      if (fileType.MimeTypes.Contains(formFile.ContentType) == false)
+      if (!fileType.MimeTypes.Contains(mediaType, StringComparer.OrdinalIgnoreCase))
       {
          /* This can only occur if the given form file has a file name and its extension indicates a different
           * MIME type as (also given) Content-Type. This *can* be an indicator that someone is trying to
@@ -53,14 +58,19 @@ public class FormFileTypeProvider : IFormFileTypeProvider
       FileByteType validationType = FileByteType.Strict
    )
    {
-      var fileTypeByContentType = Mapping.FindByMimeType(formFile.ContentType);
+      var mediaType = GetMediaType(formFile.ContentType);
+      var fileTypeByContentType = mediaType is not null
+         ? Mapping.FindByMimeType(mediaType)
+         : null;
+
       if (fileTypeByContentType is null)
       {
          return null;
       }
 
-      var fileTypeByExtension = formFile.FileName.Contains(FileExtensionSeparator)
-         ? Mapping.FindByExtension(formFile.FileName.Split(FileExtensionSeparator).Last())
+      var extension = GetExtension(formFile.FileName);
+      var fileTypeByExtension = extension is not null
+         ? Mapping.FindByExtension(extension)
          : null;
 
       if (fileTypeByExtension is not null
@@ -69,15 +79,52 @@ public class FormFileTypeProvider : IFormFileTypeProvider
          throw new MimeTypeMismatchException(fileTypeByExtension.MimeTypes, formFile.ContentType);
       }
 
-      var contentIsValid = await _validator.IsValidAsync(
-         formFileStream ?? formFile.OpenReadStream(),
-         fileTypeByContentType,
-         cancellationToken,
-         validationType
-      );
+      /* Only dispose the stream if we opened it ourselves; a given stream belongs to the caller. */
+      var ownsStream = formFileStream is null;
+      var stream = formFileStream ?? formFile.OpenReadStream();
+
+      bool contentIsValid;
+      try
+      {
+         contentIsValid = await _validator.IsValidAsync(
+            stream,
+            fileTypeByContentType,
+            cancellationToken,
+            validationType
+         );
+      }
+      finally
+      {
+         if (ownsStream)
+         {
+            await stream.DisposeAsync();
+         }
+      }
 
       return !contentIsValid
          ? throw new MimeTypeMismatchException(formFile.ContentType)
          : fileTypeByContentType;
+   }
+
+   /// <summary>
+   /// Returns the file extension without the leading separator or null if the file name has none
+   /// (e.g. "file" or "file.").
+   /// </summary>
+   private static string? GetExtension(string? fileName)
+   {
+      var extension = Path.GetExtension(fileName)?.TrimStart(FileExtensionSeparator);
+
+      return string.IsNullOrEmpty(extension) ? null : extension;
+   }
+
+   /// <summary>
+   /// Returns the media type of a Content-Type header value without parameters
+   /// (e.g. "text/plain; charset=utf-8" becomes "text/plain") or null if it is missing or invalid.
+   /// </summary>
+   private static string? GetMediaType(string? contentType)
+   {
+      return System.Net.Http.Headers.MediaTypeHeaderValue.TryParse(contentType, out var parsed)
+         ? parsed.MediaType
+         : null;
    }
 }

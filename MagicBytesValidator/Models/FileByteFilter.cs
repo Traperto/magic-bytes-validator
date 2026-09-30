@@ -27,6 +27,10 @@ public abstract class FileByteFilter : IFileType
       Extensions = extensions;
    }
 
+   /// <summary>
+   /// Checks the given bytes at a fixed offset. A negative offset counts from the end of the file,
+   /// e.g. an offset of -4 starts at the fourth to last byte.
+   /// </summary>
    public class ByteCheck(int offset, byte?[] bytesToCheck)
    {
       public readonly int Offset = offset;
@@ -207,9 +211,10 @@ public abstract class FileByteFilter : IFileType
 
    private static bool CheckBytes(ByteCheck byteToCheck, byte[] fileStreamToCheck)
    {
+      // A negative offset counts from the end of the file (e.g. -4 starts at the fourth to last byte).
       var offset = byteToCheck.Offset >= 0
          ? byteToCheck.Offset
-         : fileStreamToCheck.Length - byteToCheck.ByteArray.Length;
+         : fileStreamToCheck.Length + byteToCheck.Offset;
 
       if (offset < 0 || fileStreamToCheck.Length - offset < byteToCheck.ByteArray.Length)
       {

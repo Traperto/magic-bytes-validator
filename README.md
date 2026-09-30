@@ -31,10 +31,51 @@ dotnet add package MagicBytesValidator --version 2.4.1
   var isValidPng = await validator.IsValidAsync(memoryStream, pngFileType, CancellationToken.None);
   ```
 
-- Check a file with its stream and file type:
-```c#
-var isValid = await validator.IsValidAsync(memoryStream, fileType, CancellationToken.None);
-```
+- Find and validate the file type of an uploaded `IFormFile` (by its Content-Type, extension and content):
+
+  ```c#
+  var formFileTypeProvider = new MagicBytesValidator.Services.Http.FormFileTypeProvider();
+
+  try {
+      var fileType = await formFileTypeProvider.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
+
+      if (fileType is not null) {
+          // Further code
+      } else {
+          // Can't determine type
+      }
+  } catch(MagicBytesValidator.Exceptions.Http.MimeTypeMismatchException) {
+      // Content and given MIME type / extension don't match.
+  }
+  ```
+
+- Determine the file type of a stream by its content only:
+
+  ```c#
+  var streamFileTypeProvider = new MagicBytesValidator.Services.Streams.StreamFileTypeProvider(
+      new MagicBytesValidator.Services.Mapping()
+  );
+  var fileType = await streamFileTypeProvider.TryFindUnambiguousAsync(fileStream, CancellationToken.None);
+
+  if (fileType is not null) {
+      // Further code
+  } else {
+      // Unknown type or more than one type matches the content
+  }
+  ```
+
+### Stream handling and memory usage
+
+- The whole stream is read into memory for validation, as some checks (e.g. for docx/xlsx/pptx or legacy
+  Office files) need the complete file content. Limit the upload size before validating, e.g. via Kestrel's
+  `MaxRequestBodySize` or `FormOptions.MultipartBodyLengthLimit`. Streams larger than `Array.MaxLength` bytes
+  are rejected with an `ArgumentException`.
+- Seekable streams are read from their beginning and their position is restored afterwards.
+- Non-seekable streams (e.g. a raw request body) are read from their current position and are consumed
+  afterwards. Buffer them (e.g. in a `MemoryStream`) if you need the content again.
+- `FindValidatedTypeAsync` disposes the stream it opens via `IFormFile.OpenReadStream()`. A stream passed in
+  as `formFileStream` is left open.
+
 ## Validation strictness (FileByteType)
 
 Some formats support multiple validation strategies (e.g. strict vs. lazy rules).
@@ -52,7 +93,7 @@ var fileType = await formFileTypeProvider.FindValidatedTypeAsync(
     formFile,
     null,
     CancellationToken.None,
-    validationType: MagicBytesValidator.Models.FileByteType.Lazy
+    validationType: MagicBytesValidator.Models.FileByteType.Strict
 );
 ```
 
@@ -115,42 +156,40 @@ var mapping = formFileTypeProvider.Mapping;
 var mapping = new MagicBytesValidator.Services.Mapping();
 ```
 
-- Register a single `FileByteFilter`:
+### Add custom file types
 
-```csharp
-mapping.Register(
-    new FileByteFilter(
-        "traperto/trp", // MIME type
-        new[] { "trp" } // file extensions
-    ) {
-        // magic byte sequences
-        StartsWith(new byte?[]
-        {
-            0x78, 0x6c, 0x2f, 0x5f, 0x72, 0x65
-        })
-        .EndsWith(new byte?[]
-        {
-            0xFF, 0xFF
-        })
-    }
-);
-```
+- Define a custom type by deriving from `FileByteFilter` and register it:
 
-- `FileByteFilter`s with specific offset checks:
+  ```c#
+  public class CustomType : MagicBytesValidator.Models.FileByteFilter
+  {
+      public CustomType() : base(
+          ["traperto/trp"], // mime types
+          ["trp"] // extensions
+      )
+      {
+          // defined magic byte sequences
+          StartsWith([
+              0x78, 0x6c, 0x2f, 0x5f, 0x72, 0x65
+          ])
+          .EndsWith([
+              0xFF, 0xFF
+          ])
+          .Specific(new ByteCheck(512, [0xFD])); // byte 0xFD at offset 512
+      }
+  }
 
-```csharp
-mapping.Register(
-    new FileByteFilter(
-        "traperto/trp", // MIME type
-        new[] { "trp" } // file extensions
-    ) {
-        // magic byte sequences
-        Specific(new ByteCheck(512, new byte?[] { 0xFD }));
-    }
-);
-```
+  var mapping = new MagicBytesValidator.Services.Mapping();
+  mapping.Register(new CustomType());
+  mapping.Register(new[] { new CustomType() }); // Add multiple types
 
-`ByteCheck` allows for negative offset values to look for a specific offset counting from the end of file.
+  // Registering all `IFileType`s of the given assembly that are also not abstract and have an empty constructor.
+  mapping.Register(typeof(CustomType).Assembly);
+  ```
+
+A `ByteCheck` with a negative offset counts from the end of the file, e.g. `new ByteCheck(-4, [0xFD])` expects
+`0xFD` at the fourth to last byte.
+Byte sequences may contain `null` as a wildcard for a single arbitrary byte.
 
 ### Optional: register mode-specific magic byte checks (Strict/Lazy)
 
@@ -169,68 +208,6 @@ StartsWith(new byte?[] { 0x25, 0x50, 0x44, 0x46, 0x2D }) // global
     .TailContains(1024, new byte?[] { 0x25, 0x25, 0x45, 0x4F, 0x46 },
         MagicBytesValidator.Models.FileByteType.Lazy);   // lazy only
 ```
-
-  ```c#
-  var formFileTypeProvider = new MagicBytesValidator.Services.Http.FormFileTypeProvider();
-
-  try {
-      var fileType = await formFileTypeProvider.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
-
-      if (fileType is not null) {
-          // Further code
-      } {
-          // Can't determine type
-      }
-  } catch(MagicBytesValidator.Exceptions.Http.MimeTypeMismatchException) {
-      // Content and given MIME type / extension don't match.
-  }
-  ```
-
-// or create a new instance of the mapping:
-var mapping = new MagicBytesValidator.Services.Mapping();
-```
-
-  ```c#
-  var streamFileTypeProvider = new MagicBytesValidator.Services.Streams.StreamFileTypeProvider();
-  var fileType = await streamFileTypeProvider.TryFindUnambiguousAsync(fileStream, CancellationToken.None);
-
-  if (fileType is not null) {
-      // Further code
-  } else {
-      // Can't determine unambiguous type
-  }
-  ```
-
-#### Add custom file types
-
-- Register a custom type with filters:
-
-  ```c#
-  public class CustomType : MagicBytesValidator.Models.FileByteFilter
-  {
-      public CustomType() : base(
-          ["traperto/trp"], // mime types
-          ["trp"] // extensions
-      )
-      {
-          // defined magic byte sequences
-          StartsWith([
-              0x78, 0x6c, 0x2f, 0x5f, 0x72, 0x65
-          ])
-          .EndsWith([
-              0xFF, 0xFF
-          ])
-          .Specific(new ByteCheck(512, [0xFD])); // offset: 512 bytes, negative offset looks for a specific offset from the end of file
-      }
-  }
-
-  var mapping = new MagicBytesValidator.Services.Mapping();
-  mapping.Register(new CustomType());
-  mapping.Register(new[] { new CustomType() }); // Add multiple types
-
-  // Registering all `IFileType`s of the given assembly that are also not abstract and have an empty constructor.
-  _mapping.Register(typeof(CustomType).Assembly);
-  ```
 
 ### CLI tool
 
@@ -254,7 +231,7 @@ This can be useful when debugging or validating newly added FileTypes.
 | DOC      | doc, dot                                                                                                         | application/msword                                                        |
 | DOCX     | docx                                                                                                             | application/vnd.openxmlformats-officedocument.wordprocessingml.document   |
 | DXR      | dxr, dcr, dir                                                                                                    | application/x-director                                                    |
-| EXE      | exe, com, dll, drv, pif, qts, qtx , sys, acm, ax, cpl, fon, ocx, olb, scr, vbx, vxd, mui, iec, ime, rs, tsp, efi | application/x-dosexec, application/x-msdos-program                        |
+| EXE      | exe, com, dll, drv, pif, qts, qtx, sys, acm, ax, cpl, fon, ocx, olb, scr, vbx, vxd, mui, iec, ime, rs, tsp, efi  | application/x-dosexec, application/x-msdos-program                        |
 | FLAC     | flac                                                                                                             | audio/flac                                                                |
 | GIF      | gif                                                                                                              | image/gif                                                                 |
 | GZ       | gz                                                                                                               | application/gzip                                                          |
@@ -285,7 +262,7 @@ This can be useful when debugging or validating newly added FileTypes.
 | SWF      | swf                                                                                                              | application/x-shockwave-flash                                             |
 | 3GP      | 3gp                                                                                                              | video/3gpp                                                                |
 | TIF      | tif, tiff                                                                                                        | image/tiff                                                                |
-| TSV      | ts, tsv, tsa, mpg, mpeg                                                                                          | video/mp2t                                                                |
+| TSV      | ts, tsa                                                                                                          | video/mp2t                                                                |
 | TXT      | txt                                                                                                              | text/plain                                                                |
 | WAV      | wav                                                                                                              | audio/wav, audio/x-wav                                                    |
 | WEBM     | mkv, mka, mks, mk3d, webm                                                                                        | video/webm                                                                |
