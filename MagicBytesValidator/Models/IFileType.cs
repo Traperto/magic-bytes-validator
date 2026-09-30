@@ -10,16 +10,17 @@ public interface IFileType
     /// MIME types of a file
     /// <example>["image/gif"]</example>
     /// </summary>
-    public string[] MimeTypes { get; }
+    public IReadOnlyList<string> MimeTypes { get; }
 
     /// <summary>
     /// File extensions for a type
     /// <example>[ "gif" ]</example>
     /// </summary>
-    public string[] Extensions { get; }
+    public IReadOnlyList<string> Extensions { get; }
 
     /// <summary>
-    /// Returns whether a given file (as byte array) matches the file type
+    /// Returns whether a given file (as byte array) matches the file type.
+    /// Implementations must be safe to call from multiple threads concurrently.
     /// </summary>
     public bool Matches(byte[] fileByteStream, FileByteType type = FileByteType.Strict);
 }

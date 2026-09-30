@@ -4,24 +4,15 @@
         <PackageId>MagicBytesValidator</PackageId>
         <Title>MagicBytesValidator</Title>
         <Description>Validate files based on mime types, file extensions and magic byte sequences.</Description>
-        <Version>2.4.1</Version>
-        <Authors>Members of traperto GmbH;kryptobi</Authors>
-        <PackageProjectUrl>https://github.com/Traperto/magic-bytes-validator/blob/main/README.md</PackageProjectUrl>
         <PackageTags>mime mimetype mimetypes magic magicbyte magicbytes extension extensions file
             fileextension trapertoGmbH + TobiasJanssen
         </PackageTags>
-        <RepositoryUrl>https://github.com/Traperto/magic-bytes-validator</RepositoryUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <RepositoryType>git</RepositoryType>
-        <Company>traperto GmbH</Company>
-
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
         <None Include="../README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 

@@ -5,4 +5,15 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
+
+    <!-- Shared package metadata, so all packages are released with the same version -->
+    <PropertyGroup>
+        <Version>3.0.0</Version>
+        <Authors>Members of traperto GmbH;kryptobi</Authors>
+        <Company>traperto GmbH</Company>
+        <PackageProjectUrl>https://github.com/Traperto/magic-bytes-validator/blob/main/README.md</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Traperto/magic-bytes-validator</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
 </Project>
