@@ -20,6 +20,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\MagicBytesValidator\MagicBytesValidator.csproj" />
+      <ProjectReference Include="..\MagicBytesValidator.AspNetCore\MagicBytesValidator.AspNetCore.csproj" />
     </ItemGroup>
 
 </Project>

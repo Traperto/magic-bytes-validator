@@ -1,4 +1,4 @@
-﻿namespace MagicBytesValidator.Services.Http;
+﻿namespace MagicBytesValidator.AspNetCore.Services.Http;
 
 /// <summary>
 /// Service that provides file information for given <see cref="IFormFile"/>.

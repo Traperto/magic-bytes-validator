@@ -5,20 +5,38 @@ The existing file types can be expanded in various ways.
 
 ### How to install
 
-- Install nuget package into your project:
+There are two packages:
 
-```powershell
-Install-Package MagicBytesValidator -Version 2.4.1
-```
+- `MagicBytesValidator`: the core library to validate `Stream`s. It has no dependencies.
+- `MagicBytesValidator.AspNetCore`: validation of uploaded `IFormFile`s and registration in the dependency
+  injection container of ASP.NET Core. It references the core package.
 
 ```bash
-dotnet add package MagicBytesValidator --version 2.4.1
+dotnet add package MagicBytesValidator --version 3.0.0
+dotnet add package MagicBytesValidator.AspNetCore --version 3.0.0
 ```
 
-- Reference in your csproj:
+- Or reference in your csproj:
 ```xml
-<PackageReference Include="MagicBytesValidator" Version="2.4.1" />
+<PackageReference Include="MagicBytesValidator" Version="3.0.0" />
+<PackageReference Include="MagicBytesValidator.AspNetCore" Version="3.0.0" />
 ```
+
+Upgrading from 2.x? See [Upgrading to 3.0](#upgrading-to-30).
+
+### Register in ASP.NET Core (MagicBytesValidator.AspNetCore)
+
+```c#
+using MagicBytesValidator.AspNetCore;
+
+builder.Services.AddMagicBytesValidator();
+
+// or with custom file types:
+builder.Services.AddMagicBytesValidator(mapping => mapping.Register(new CustomType()));
+```
+
+This registers `IMapping`, `IValidator`, `IStreamFileTypeProvider` and `IFormFileTypeProvider` as singletons
+that share the same mapping.
 
 ### How to use
 
@@ -31,10 +49,11 @@ dotnet add package MagicBytesValidator --version 2.4.1
   var isValidPng = await validator.IsValidAsync(memoryStream, pngFileType, CancellationToken.None);
   ```
 
-- Find and validate the file type of an uploaded `IFormFile` (by its Content-Type, extension and content):
+- Find and validate the file type of an uploaded `IFormFile` by its Content-Type, extension and content
+  (requires `MagicBytesValidator.AspNetCore`):
 
   ```c#
-  var formFileTypeProvider = new MagicBytesValidator.Services.Http.FormFileTypeProvider();
+  var formFileTypeProvider = new MagicBytesValidator.AspNetCore.Services.Http.FormFileTypeProvider();
 
   try {
       var fileType = await formFileTypeProvider.FindValidatedTypeAsync(formFile, null, CancellationToken.None);
@@ -44,7 +63,7 @@ dotnet add package MagicBytesValidator --version 2.4.1
       } else {
           // Can't determine type
       }
-  } catch(MagicBytesValidator.Exceptions.Http.MimeTypeMismatchException) {
+  } catch(MagicBytesValidator.AspNetCore.Exceptions.Http.MimeTypeMismatchException) {
       // Content and given MIME type / extension don't match.
   }
   ```
@@ -52,9 +71,7 @@ dotnet add package MagicBytesValidator --version 2.4.1
 - Determine the file type of a stream by its content only:
 
   ```c#
-  var streamFileTypeProvider = new MagicBytesValidator.Services.Streams.StreamFileTypeProvider(
-      new MagicBytesValidator.Services.Mapping()
-  );
+  var streamFileTypeProvider = new MagicBytesValidator.Services.Streams.StreamFileTypeProvider();
   var fileType = await streamFileTypeProvider.TryFindUnambiguousAsync(fileStream, CancellationToken.None);
 
   if (fileType is not null) {
@@ -132,6 +149,9 @@ var isValid = await validator.IsValidAsync(
 );
 ```
 
+The methods of `StreamFileTypeProvider` (`FindAllMatchesAsync`, `FindCloseMatchesAsync` and
+`TryFindUnambiguousAsync`) accept the same optional `validationType` parameter.
+
 > Note: If a format does not define any `Lazy`-specific checks, `Lazy` behaves like “global checks only”.
 > This keeps existing formats unchanged unless they opt into mode-specific rules.
 
@@ -191,6 +211,10 @@ A `ByteCheck` with a negative offset counts from the end of the file, e.g. `new 
 `0xFD` at the fourth to last byte.
 Byte sequences may contain `null` as a wildcard for a single arbitrary byte.
 
+A `FileByteFilter` is frozen when it is used for the first time (or when `Freeze()` is called). Afterwards its
+checks can't be changed anymore and further configuration throws an `InvalidOperationException`, so configure
+your types completely in their constructor. Frozen filters can safely be used from multiple threads.
+
 ### Optional: register mode-specific magic byte checks (Strict/Lazy)
 
 When configuring a `FileByteFilter`, fluent methods accept an optional `FileByteType` parameter.
@@ -219,6 +243,50 @@ dotnet run --project MagicBytesValidator.CLI -- [PATH]
 ```
 
 This can be useful when debugging or validating newly added FileTypes.
+
+### Upgrading to 3.0
+
+**Packages**
+
+- Everything related to ASP.NET Core moved to the new package `MagicBytesValidator.AspNetCore`:
+  `FormFileTypeProvider`, `IFormFileTypeProvider` and `MimeTypeMismatchException`. Their namespaces changed
+  from `MagicBytesValidator.Services.Http` and `MagicBytesValidator.Exceptions.Http` to
+  `MagicBytesValidator.AspNetCore.Services.Http` and `MagicBytesValidator.AspNetCore.Exceptions.Http`.
+  The core package no longer depends on ASP.NET Core.
+- Use `services.AddMagicBytesValidator()` to register the services in the dependency injection container.
+
+**Removed APIs**
+
+| Removed                                          | Replacement                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------------ |
+| `FormFileTypeProvider.FindFileTypeForFormFile`   | `FindValidatedTypeAsync`                                           |
+| `StreamFileTypeProvider.FindByMagicByteSequenceAsync` | `TryFindUnambiguousAsync`                                     |
+| `FileTypeCollector.CollectFileTypes`             | `FileTypeCollector.CollectFileTypesForAssembly` or `Mapping.Register(assembly)` |
+| `EnumerableExtensions.AsIndexed`                 | –                                                                  |
+
+**Changed APIs**
+
+- `Mapping` properties and constructor parameters of `Validator`, `FormFileTypeProvider` and their interfaces
+  are typed as `IMapping` instead of `Mapping`. `StreamFileTypeProvider` got an optional mapping parameter and
+  a `Mapping` property as well.
+- `IFileType.MimeTypes` and `IFileType.Extensions` are `IReadOnlyList<string>` instead of `string[]`.
+- `FindAllMatchesAsync` and `FindCloseMatchesAsync` return `IReadOnlyList<IFileType>` instead of
+  `IEnumerable<IFileType>`.
+- `ByteCheck.Offset` and `ByteCheck.ByteArray` (fields) were replaced by the read-only properties `Offset` and
+  `Bytes`.
+- `ArgumentEmptyException` derives from `ArgumentException` instead of `ArgumentNullException`. `null`
+  arguments throw an `ArgumentNullException` instead.
+
+**Changed behaviour**
+
+- `FileByteFilter`s are frozen after their first use, see [Add custom file types](#add-custom-file-types).
+- `TryFindUnambiguousAsync` returns `null` if more than one file type matches (it returned the first match before).
+- A negative `ByteCheck` offset counts from the end of the file (before, every negative offset checked the very
+  last bytes).
+- `FindValidatedTypeAsync` ignores parameters of the Content-Type (e.g. `; charset=utf-8`) and returns `null`
+  instead of throwing if the Content-Type is missing.
+- MPEG transport streams (`video/mp2t`) are detected by the first two packets, so files starting with `G`
+  (e.g. GIFs) are no longer detected as such. The extensions `tsv`, `mpg` and `mpeg` no longer belong to them.
 
 ### List of file types
 

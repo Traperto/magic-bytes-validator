@@ -1,4 +1,4 @@
-﻿namespace MagicBytesValidator.Services.Http;
+﻿namespace MagicBytesValidator.AspNetCore.Services.Http;
 
 /// <inheritdoc />
 public class FormFileTypeProvider : IFormFileTypeProvider
