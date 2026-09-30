@@ -13,14 +13,17 @@ public abstract class FileByteFilter : IFileType
       string[] mimeTypes,
       string[] extensions)
    {
-      if (!mimeTypes.Any() || mimeTypes.Any(string.IsNullOrEmpty))
+      ArgumentNullException.ThrowIfNull(mimeTypes);
+      ArgumentNullException.ThrowIfNull(extensions);
+
+      if (mimeTypes.Length == 0 || mimeTypes.Any(string.IsNullOrEmpty))
       {
-         throw new ArgumentEmptyException($"{nameof(mimeTypes)} cannot be null or empty");
+         throw new ArgumentEmptyException(nameof(mimeTypes));
       }
 
-      if (!extensions.Any() || extensions.Any(string.IsNullOrEmpty))
+      if (extensions.Length == 0 || extensions.Any(string.IsNullOrEmpty))
       {
-         throw new ArgumentEmptyException($"{nameof(extensions)} cannot be null or empty");
+         throw new ArgumentEmptyException(nameof(extensions));
       }
 
       MimeTypes = mimeTypes;
@@ -159,9 +162,9 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(streamNames);
 
-      if (!streamNames.Any() || streamNames.Any(string.IsNullOrEmpty))
+      if (streamNames.Length == 0 || streamNames.Any(string.IsNullOrEmpty))
       {
-         throw new ArgumentEmptyException($"{nameof(streamNames)} cannot be null or empty");
+         throw new ArgumentEmptyException(nameof(streamNames));
       }
 
       GetChecksByType(type).CompoundFileStreamAnyOf.Add(streamNames);

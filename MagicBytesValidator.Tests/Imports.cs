@@ -7,6 +7,7 @@ global using System.IO;
 global using System.Linq;
 global using System.Threading;
 global using System.Threading.Tasks;
+global using MagicBytesValidator.Exceptions;
 global using MagicBytesValidator.Exceptions.Http;
 global using MagicBytesValidator.Formats;
 global using MagicBytesValidator.Models;

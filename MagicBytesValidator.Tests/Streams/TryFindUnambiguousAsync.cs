@@ -141,6 +141,102 @@ public class TryFindUnambiguousAsync
     }
 
     [Fact]
+    public async Task Should_find_by_magic_byte_sequence_with_offset()
+    {
+        var matchingFileType = new TestFileType()
+            .Anywhere([0x11, 0x12, 0x18]);
+
+        var mismatchingFileType = new TestFileType()
+            .StartsWithAnyOf([
+                [0x11, 0x22, 0xFF],
+                [0x11, 0x22, 0x44, 0x55]
+            ]);
+
+        var mapping = new Mock<IMapping>();
+        mapping
+            .SetupGet(m => m.FileTypes)
+            .Returns([matchingFileType, mismatchingFileType]);
+
+        var sut = new StreamFileTypeProvider(mapping.Object);
+
+        var stream = new MemoryStream([0x00, 0x00, 0x11, 0x12, 0x18]);
+
+        var result = await sut.TryFindUnambiguousAsync(stream, CancellationToken.None);
+
+        Assert.Same(matchingFileType, result);
+    }
+
+    [Fact]
+    public async Task Should_handle_unknown_file_type_by_offset_in_type()
+    {
+        var mismatchingFileType = new TestFileType()
+            .StartsWithAnyOf([
+                [0x11, 0x22, 0x44, 0x55]
+            ]);
+
+        var mapping = new Mock<IMapping>();
+        mapping
+            .SetupGet(m => m.FileTypes)
+            .Returns([mismatchingFileType]);
+
+        var sut = new StreamFileTypeProvider(mapping.Object);
+
+        var stream = new MemoryStream([0x11, 0x22]);
+
+        var result = await sut.TryFindUnambiguousAsync(stream, CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task Should_handle_unknown_file_type_by_offset_in_stream()
+    {
+        var mismatchingFileType = new TestFileType()
+            .StartsWithAnyOf([
+                [0x11, 0x22],
+                [0x11, 0x22, 0x44, 0x55]
+            ]);
+
+        var mapping = new Mock<IMapping>();
+        mapping
+            .SetupGet(m => m.FileTypes)
+            .Returns([mismatchingFileType]);
+
+        var sut = new StreamFileTypeProvider(mapping.Object);
+
+        var stream = new MemoryStream([0x00, 0x00, 0x11, 0x22]);
+
+        var result = await sut.TryFindUnambiguousAsync(stream, CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task Should_use_given_validation_type()
+    {
+        var sut = new StreamFileTypeProvider(new Mapping());
+
+        /* PDF with trailing bytes after %%EOF: only valid with lazy rules */
+        var pdf = "%PDF-1.7\n%%EOF\ntrailing"u8.ToArray();
+
+        Assert.Null(await sut.TryFindUnambiguousAsync(new MemoryStream(pdf), CancellationToken.None));
+        Assert.IsType<Pdf>(
+            await sut.TryFindUnambiguousAsync(new MemoryStream(pdf), CancellationToken.None, FileByteType.Lazy));
+    }
+
+    [Fact]
+    public async Task Should_use_default_mapping()
+    {
+        var sut = new StreamFileTypeProvider();
+
+        var result = await sut.TryFindUnambiguousAsync(
+            new MemoryStream([0x47, 0x49, 0x46, 0x38, 0x39, 0x61]),
+            CancellationToken.None);
+
+        Assert.IsType<Gif>(result);
+    }
+
+    [Fact]
     public async Task Should_return_null_on_ambiguous_matches()
     {
         var firstFileType = new TestFileType().StartsWith([0x11, 0x12]);

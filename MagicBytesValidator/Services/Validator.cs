@@ -3,9 +3,9 @@
 public class Validator : IValidator
 {
    /// <inheritdoc />
-   public Mapping Mapping { get; }
+   public IMapping Mapping { get; }
 
-   public Validator(Mapping? mapping = null)
+   public Validator(IMapping? mapping = null)
    {
       Mapping = mapping ?? new Mapping();
    }
@@ -18,6 +18,9 @@ public class Validator : IValidator
       FileByteType validationType = FileByteType.Strict
    )
    {
+      ArgumentNullException.ThrowIfNull(fileStream);
+      ArgumentNullException.ThrowIfNull(fileType);
+
       var streamBuffer = await fileStream.ReadAllBytesFromStartAsync(cancellationToken);
 
       return fileType.Matches(streamBuffer, validationType);
