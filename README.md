@@ -187,7 +187,8 @@ var mapping = new MagicBytesValidator.Services.Mapping();
   mapping.Register(typeof(CustomType).Assembly);
   ```
 
-A `ByteCheck` with a negative offset checks the bytes at the very end of the file (like `EndsWith`).
+A `ByteCheck` with a negative offset counts from the end of the file, e.g. `new ByteCheck(-4, [0xFD])` expects
+`0xFD` at the fourth to last byte.
 Byte sequences may contain `null` as a wildcard for a single arbitrary byte.
 
 ### Optional: register mode-specific magic byte checks (Strict/Lazy)

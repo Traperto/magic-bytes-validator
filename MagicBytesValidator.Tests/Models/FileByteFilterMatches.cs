@@ -163,4 +163,28 @@ public class FileByteFilterMatches
 
         Assert.True(heic.Matches(testStream));
     }
+
+    [Theory]
+    [InlineData(new byte[] { 0xFD, 0x01, 0x02, 0x03 }, true)]
+    [InlineData(new byte[] { 0x00, 0xFD, 0x01, 0x02, 0x03 }, true)]
+    [InlineData(new byte[] { 0x01, 0x02, 0x03, 0xFD }, false)]
+    [InlineData(new byte[] { 0x01, 0x02, 0x03 }, false)]
+    public void Should_check_negative_offset_from_end_of_file(byte[] testData, bool expected)
+    {
+        var fileType = new TestFileType().Specific(new FileByteFilter.ByteCheck(-4, [0xFD]));
+
+        Assert.Equal(expected, fileType.Matches(testData));
+    }
+
+    [Theory]
+    [InlineData(new byte[] { 0x00, 0x01, 0x02, 0xFE, 0xFF }, true)]
+    [InlineData(new byte[] { 0xFE, 0xFF }, true)]
+    [InlineData(new byte[] { 0xFE, 0xFF, 0x00 }, false)]
+    [InlineData(new byte[] { 0xFF }, false)]
+    public void Should_check_ends_with(byte[] testData, bool expected)
+    {
+        var fileType = new TestFileType().EndsWith([0xFE, 0xFF]);
+
+        Assert.Equal(expected, fileType.Matches(testData));
+    }
 }
