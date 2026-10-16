@@ -1,0 +1,56 @@
+name: .NET - Publish to NuGet
+
+on:
+  release:
+    types: ["published"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to attach the packages to the release
+      id-token: write # needed for NuGet trusted publishing (OIDC)
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8
+            9
+            10
+
+      # Release tag "v3.0.1" (or "3.0.1") becomes package version "3.0.1"
+      - name: Determine version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release -p:Version=$VERSION
+
+      - name: Test
+        run: dotnet test --no-build -c Release --verbosity normal
+
+      - name: Pack
+        run: dotnet pack MagicBytesValidator/MagicBytesValidator.csproj --no-build -c Release -p:Version=$VERSION -o nupkgs
+
+      # Exchanges the GitHub OIDC token for a short-lived NuGet API key
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: tobiasjanssen
+
+      - name: Push to NuGet
+        run: dotnet nuget push "nupkgs/*.nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Attach packages to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" nupkgs/*.nupkg --clobber
