@@ -137,8 +137,8 @@ var isValid = await validator.IsValidAsync(
 
 ### Example: Lazy ("relaxed") PDF validation
 
-Some PDFs contain additional trailing bytes after the `%%EOF` marker. While strict validation may require the file
-to end with `%%EOF`, lazy validation can accept the `%%EOF` marker anywhere within the last 1024 bytes of the file
+Some PDFs contain additional trailing bytes after the `%%EOF` marker. While strict validation requires the file
+to end with `%%EOF` (optionally followed by whitespace such as line breaks), lazy validation can accept the `%%EOF` marker anywhere within the last 1024 bytes of the file
 (behaviour tolerated by common PDF viewers).
 
 ## Expand the file type mapping
@@ -186,6 +186,9 @@ var mapping = new MagicBytesValidator.Services.Mapping();
   // Registering all `IFileType`s of the given assembly that are also not abstract and have an empty constructor.
   mapping.Register(typeof(CustomType).Assembly);
   ```
+
+`EndsWithIgnoringTrailing(bytes, ignoredTrailingBytes)` works like `EndsWith`, but tolerates any number of the
+ignored bytes (e.g. whitespace) after the expected sequence.
 
 A `ByteCheck` with a negative offset counts from the end of the file, e.g. `new ByteCheck(-4, [0xFD])` expects
 `0xFD` at the fourth to last byte.

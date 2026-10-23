@@ -43,6 +43,12 @@ public abstract class FileByteFilter : IFileType
       public byte?[] Pattern { get; } = pattern;
    }
 
+   private sealed class EndsWithIgnoringTrailingCheck(byte?[] pattern, byte[] ignoredTrailingBytes)
+   {
+      public byte?[] Pattern { get; } = pattern;
+      public byte[] IgnoredTrailingBytes { get; } = ignoredTrailingBytes;
+   }
+
    private sealed class FileByteCheck
    {
       public List<ByteCheck> Needed { get; } = [];
@@ -50,20 +56,23 @@ public abstract class FileByteFilter : IFileType
       public List<byte?[]> Anywhere { get; } = [];
       public List<string[]> CompoundFileStreamAnyOf { get; } = [];
       public List<TailContainsCheck> TailContains { get; } = [];
+      public List<EndsWithIgnoringTrailingCheck> EndsWithIgnoringTrailing { get; } = [];
 
       /* A file matches only if:
           - every Needed check matches at its fixed offset,
           - for each AnyOf-group at least one alternative matches,
           - every Anywhere-pattern occurs somewhere in the stream (null bytes act as wildcards),
           - for each CompoundFileStreamAnyOf-group the OLE root storage contains at least one of the named streams,
-          - every TailContains check finds its pattern within the last bytes. */
+          - every TailContains check finds its pattern within the last bytes,
+          - every EndsWithIgnoringTrailing check finds its pattern at the end once the ignored bytes are stripped. */
       public bool Matches(byte[] fileByteStream)
       {
          return Needed.All(check => CheckBytes(check, fileByteStream))
                 && AnyOf.All(group => group.Any(check => CheckBytes(check, fileByteStream)))
                 && Anywhere.All(pattern => ContainsPatternAnywhere(pattern, fileByteStream))
                 && CheckCompoundFileStreams(CompoundFileStreamAnyOf, fileByteStream)
-                && TailContains.All(check => CheckTailContains(check, fileByteStream));
+                && TailContains.All(check => CheckTailContains(check, fileByteStream))
+                && EndsWithIgnoringTrailing.All(check => CheckEndsWithIgnoringTrailing(check, fileByteStream));
       }
    }
 
@@ -120,6 +129,25 @@ public abstract class FileByteFilter : IFileType
       GetChecksByType(type)
          .AnyOf
          .Add(bytesToCheck.Select(byteArray => new ByteCheck(-byteArray.Length, byteArray)).ToArray());
+
+      return this;
+   }
+
+   /// <summary>
+   /// Requires the file to end with the given bytes, optionally followed by any number of the ignored trailing
+   /// bytes (e.g. whitespace some tools append after an end marker).
+   /// </summary>
+   public FileByteFilter EndsWithIgnoringTrailing(
+      byte?[] bytesToCheck,
+      byte[] ignoredTrailingBytes,
+      FileByteType? type = null)
+   {
+      ArgumentNullException.ThrowIfNull(bytesToCheck);
+      ArgumentNullException.ThrowIfNull(ignoredTrailingBytes);
+
+      GetChecksByType(type)
+         .EndsWithIgnoringTrailing
+         .Add(new EndsWithIgnoringTrailingCheck(bytesToCheck, ignoredTrailingBytes));
 
       return this;
    }
@@ -313,5 +341,21 @@ public abstract class FileByteFilter : IFileType
       }
 
       return false;
+   }
+
+   private static bool CheckEndsWithIgnoringTrailing(
+      EndsWithIgnoringTrailingCheck check,
+      byte[] fileStreamToCheck)
+   {
+      var end = fileStreamToCheck.Length;
+
+      while (end > 0 && Array.IndexOf(check.IgnoredTrailingBytes, fileStreamToCheck[end - 1]) >= 0)
+      {
+         end--;
+      }
+
+      var offset = end - check.Pattern.Length;
+
+      return offset >= 0 && MatchesPatternAt(fileStreamToCheck, offset, check.Pattern);
    }
 }
