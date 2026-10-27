@@ -85,6 +85,30 @@ public class FileByteFilterMatches
        Assert.True(pdf.Matches(pdfTestData, FileByteType.Strict));
     }
 
+    [Theory]
+    [InlineData("%PDF-\n%%EOF\n\n")]
+    [InlineData("%PDF-\r\n%%EOF\n")]
+    [InlineData("%PDF-\n%%EOF\r\n\r\n")]
+    [InlineData("%PDF-\n%%EOF \t\f\0")]
+    public void Should_match_pdf_in_strict_mode_with_trailing_whitespace(string content)
+    {
+       var pdf = new Pdf();
+
+       var pdfTestData = System.Text.Encoding.ASCII.GetBytes(content);
+
+       Assert.True(pdf.Matches(pdfTestData, FileByteType.Strict));
+    }
+
+    [Fact]
+    public void Should_not_match_pdf_in_strict_mode_with_whitespace_only_after_header()
+    {
+       var pdf = new Pdf();
+
+       var pdfTestData = "%PDF-\n\n\n"u8.ToArray();
+
+       Assert.False(pdf.Matches(pdfTestData, FileByteType.Strict));
+    }
+
     [Fact]
     public void Should_match_ppt()
     {
