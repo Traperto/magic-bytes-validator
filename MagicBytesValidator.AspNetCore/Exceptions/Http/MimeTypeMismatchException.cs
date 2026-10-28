@@ -1,4 +1,4 @@
-﻿namespace MagicBytesValidator.Exceptions.Http;
+﻿namespace MagicBytesValidator.AspNetCore.Exceptions.Http;
 
 /// <summary>
 /// Exception that can be thrown if two MIME types (that should be equal) are different.
