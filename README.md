@@ -190,6 +190,9 @@ var mapping = new MagicBytesValidator.Services.Mapping();
 `EndsWithIgnoringTrailing(bytes, ignoredTrailingBytes)` works like `EndsWith`, but tolerates any number of the
 ignored bytes (e.g. whitespace) after the expected sequence.
 
+`EndsWithZipEndOfCentralDirectory()` requires the file to end with a ZIP end of central directory record, optionally
+followed by a ZIP comment of up to 65535 bytes (as e.g. written by Aspose.Cells).
+
 A `ByteCheck` with a negative offset counts from the end of the file, e.g. `new ByteCheck(-4, [0xFD])` expects
 `0xFD` at the fourth to last byte.
 Byte sequences may contain `null` as a wildcard for a single arbitrary byte.
