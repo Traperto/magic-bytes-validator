@@ -21,6 +21,7 @@ jobs:
             8
             9
             10
+            11
 
       # Release tag "v3.0.1" (or "3.0.1") becomes package version "3.0.1"
       - name: Determine version
