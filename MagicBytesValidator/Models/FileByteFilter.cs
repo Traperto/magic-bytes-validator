@@ -57,6 +57,7 @@ public abstract class FileByteFilter : IFileType
       public List<string[]> CompoundFileStreamAnyOf { get; } = [];
       public List<TailContainsCheck> TailContains { get; } = [];
       public List<EndsWithIgnoringTrailingCheck> EndsWithIgnoringTrailing { get; } = [];
+      public bool ZipEndOfCentralDirectory { get; set; }
 
       /* A file matches only if:
           - every Needed check matches at its fixed offset,
@@ -64,7 +65,8 @@ public abstract class FileByteFilter : IFileType
           - every Anywhere-pattern occurs somewhere in the stream (null bytes act as wildcards),
           - for each CompoundFileStreamAnyOf-group the OLE root storage contains at least one of the named streams,
           - every TailContains check finds its pattern within the last bytes,
-          - every EndsWithIgnoringTrailing check finds its pattern at the end once the ignored bytes are stripped. */
+          - every EndsWithIgnoringTrailing check finds its pattern at the end once the ignored bytes are stripped,
+          - if ZipEndOfCentralDirectory is set, the file ends with a ZIP end of central directory record. */
       public bool Matches(byte[] fileByteStream)
       {
          return Needed.All(check => CheckBytes(check, fileByteStream))
@@ -72,7 +74,8 @@ public abstract class FileByteFilter : IFileType
                 && Anywhere.All(pattern => ContainsPatternAnywhere(pattern, fileByteStream))
                 && CheckCompoundFileStreams(CompoundFileStreamAnyOf, fileByteStream)
                 && TailContains.All(check => CheckTailContains(check, fileByteStream))
-                && EndsWithIgnoringTrailing.All(check => CheckEndsWithIgnoringTrailing(check, fileByteStream));
+                && EndsWithIgnoringTrailing.All(check => CheckEndsWithIgnoringTrailing(check, fileByteStream))
+                && (!ZipEndOfCentralDirectory || EndsWithZipEndOfCentralDirectoryRecord(fileByteStream));
       }
    }
 
@@ -149,6 +152,17 @@ public abstract class FileByteFilter : IFileType
          .EndsWithIgnoringTrailing
          .Add(new EndsWithIgnoringTrailingCheck(bytesToCheck, ignoredTrailingBytes));
 
+      return this;
+   }
+
+   /// <summary>
+   /// Requires the file to end with a ZIP end of central directory record (signature <c>50 4B 05 06</c>), followed
+   /// only by its optional comment. The comment can be up to 65535 bytes long, so the record is not necessarily
+   /// located in the last 22 bytes of the file.
+   /// </summary>
+   public FileByteFilter EndsWithZipEndOfCentralDirectory(FileByteType? type = null)
+   {
+      GetChecksByType(type).ZipEndOfCentralDirectory = true;
       return this;
    }
 
@@ -357,5 +371,30 @@ public abstract class FileByteFilter : IFileType
       var offset = end - check.Pattern.Length;
 
       return offset >= 0 && MatchesPatternAt(fileStreamToCheck, offset, check.Pattern);
+   }
+
+   private static bool EndsWithZipEndOfCentralDirectoryRecord(byte[] fileStreamToCheck)
+   {
+      const int minimumRecordLength = 22;
+      const int commentLengthOffset = 20;
+
+      var lastPossibleOffset = fileStreamToCheck.Length - minimumRecordLength;
+      var firstPossibleOffset = Math.Max(0, lastPossibleOffset - ushort.MaxValue);
+
+      // Search backwards: the record may only be followed by its comment, whose length is stored in the record.
+      for (var offset = lastPossibleOffset; offset >= firstPossibleOffset; offset--)
+      {
+         if (fileStreamToCheck[offset] == 0x50
+             && fileStreamToCheck[offset + 1] == 0x4B
+             && fileStreamToCheck[offset + 2] == 0x05
+             && fileStreamToCheck[offset + 3] == 0x06
+             && BinaryPrimitives.ReadUInt16LittleEndian(fileStreamToCheck.AsSpan(offset + commentLengthOffset))
+             == fileStreamToCheck.Length - offset - minimumRecordLength)
+         {
+            return true;
+         }
+      }
+
+      return false;
    }
 }

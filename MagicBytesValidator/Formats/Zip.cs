@@ -18,9 +18,6 @@ public class Zip : FileByteFilter
                 [0x50, 0x4B, 0x05, 0x06],
                 [0x50, 0x4B, 0x07, 0x08]
             ])
-            .EndsWith([
-                0x50, 0x4B, null, null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null,  null, null, null
-            ]);
+            .EndsWithZipEndOfCentralDirectory();
     }
 }
