@@ -83,7 +83,7 @@ public class StreamReadingTests
     private static IFormFile ProvideFormFile(Stream stream)
     {
         var formFile = new Mock<IFormFile>();
-        formFile.SetupGet(f => f.FileName).Returns("trp.gif");
+        formFile.SetupGet(f => f.FileName).Returns("test.gif");
         formFile.SetupGet(f => f.ContentType).Returns("image/gif");
         formFile.Setup(f => f.OpenReadStream()).Returns(stream);
 

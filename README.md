@@ -7,16 +7,16 @@ The existing file types can be expanded in various ways.
 
 
 ```powershell
-Install-Package MagicBytesValidator -Version 2.6.0
+Install-Package MagicBytesValidator -Version 3.0.0
 ```
 
 ```bash
-dotnet add package MagicBytesValidator --version 2.6.0
+dotnet add package MagicBytesValidator --version 3.0.0
 ```
 
 Or reference it in your csproj:
 ```xml
-<PackageReference Include="MagicBytesValidator" Version="2.6.0" />
+<PackageReference Include="MagicBytesValidator" Version="3.0.0" />
 ```
 
 ### Register in ASP.NET Core
@@ -211,10 +211,9 @@ A `ByteCheck` with a negative offset counts from the end of the file, e.g. `new 
 `0xFD` at the fourth to last byte.
 Byte sequences may contain `null` as a wildcard for a single arbitrary byte.
 
-Configure your types completely in their constructor. `Freeze()` prevents any further changes to the checks of a
-`FileByteFilter` (further configuration throws an `InvalidOperationException`), so frozen filters can safely be
-used from multiple threads. Starting with version 3.0, a `FileByteFilter` is frozen automatically when it is used
-for the first time.
+A `FileByteFilter` is frozen when it is used for the first time (or when `Freeze()` is called). Afterwards its
+checks can't be changed anymore and further configuration throws an `InvalidOperationException`, so configure
+your types completely in their constructor. Frozen filters can safely be used from multiple threads.
 
 ### Optional: register mode-specific magic byte checks (Strict/Lazy)
 

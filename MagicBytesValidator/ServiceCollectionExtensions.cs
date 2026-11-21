@@ -17,24 +17,20 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        /* Validator and FormFileTypeProvider still depend on the concrete Mapping in 2.x,
-         * so the mapping is registered as Mapping and exposed as IMapping. */
-        services.TryAddSingleton(_ =>
+        services.TryAddSingleton<IMapping>(_ =>
         {
             var mapping = new Mapping();
             configureMapping?.Invoke(mapping);
             return mapping;
         });
 
-        services.TryAddSingleton<IMapping>(provider => provider.GetRequiredService<Mapping>());
-
-        services.TryAddSingleton<IValidator>(provider => new Validator(provider.GetRequiredService<Mapping>()));
+        services.TryAddSingleton<IValidator>(provider => new Validator(provider.GetRequiredService<IMapping>()));
 
         services.TryAddSingleton<IStreamFileTypeProvider>(provider =>
             new StreamFileTypeProvider(provider.GetRequiredService<IMapping>()));
 
         services.TryAddSingleton<IFormFileTypeProvider>(provider => new FormFileTypeProvider(
-            provider.GetRequiredService<Mapping>(),
+            provider.GetRequiredService<IMapping>(),
             provider.GetRequiredService<IValidator>()));
 
         return services;

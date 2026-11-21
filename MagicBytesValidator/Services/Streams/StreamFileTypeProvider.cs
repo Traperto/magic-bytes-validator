@@ -2,9 +2,7 @@
 
 public class StreamFileTypeProvider : IStreamFileTypeProvider
 {
-    /// <summary>
-    /// Mapping whose file types are matched against the streams
-    /// </summary>
+    /// <inheritdoc />
     public IMapping Mapping { get; }
 
     public StreamFileTypeProvider(IMapping? mapping = null)
@@ -12,28 +10,13 @@ public class StreamFileTypeProvider : IStreamFileTypeProvider
         Mapping = mapping ?? new Mapping();
     }
 
-    [Obsolete("Use TryFindUnambiguousAsync instead. FindByMagicByteSequenceAsync will be removed in version 3.0.")]
-    public Task<IFileType?> FindByMagicByteSequenceAsync(Stream stream, CancellationToken cancellationToken)
-    {
-        return TryFindUnambiguousAsync(stream, cancellationToken);
-    }
-
     /// <inheritdoc />
-    public Task<IEnumerable<IFileType>> FindAllMatchesAsync(Stream stream, CancellationToken cancellationToken)
-    {
-        return FindAllMatchesAsync(stream, cancellationToken, FileByteType.Strict);
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<IFileType>> FindAllMatchesAsync(
+    public async Task<IReadOnlyList<IFileType>> FindAllMatchesAsync(
         Stream stream,
         CancellationToken cancellationToken,
-        FileByteType validationType)
+        FileByteType validationType = FileByteType.Strict)
     {
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(stream);
 
         var streamBuffer = await stream.ReadAllBytesFromStartAsync(cancellationToken);
 
@@ -43,18 +26,12 @@ public class StreamFileTypeProvider : IStreamFileTypeProvider
     }
 
     /// <inheritdoc />
-    public Task<IEnumerable<IFileType>> FindCloseMatchesAsync(Stream stream, CancellationToken cancellationToken)
-    {
-        return FindCloseMatchesAsync(stream, cancellationToken, FileByteType.Strict);
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<IFileType>> FindCloseMatchesAsync(
+    public async Task<IReadOnlyList<IFileType>> FindCloseMatchesAsync(
         Stream stream,
         CancellationToken cancellationToken,
-        FileByteType validationType)
+        FileByteType validationType = FileByteType.Strict)
     {
-        var matches = (await FindAllMatchesAsync(stream, cancellationToken, validationType)).ToList();
+        var matches = await FindAllMatchesAsync(stream, cancellationToken, validationType);
 
         return matches
             .Where(m1 => matches.All(m2 => !m2.GetType().IsSubclassOf(m1.GetType())))
@@ -62,18 +39,12 @@ public class StreamFileTypeProvider : IStreamFileTypeProvider
     }
 
     /// <inheritdoc />
-    public Task<IFileType?> TryFindUnambiguousAsync(Stream stream, CancellationToken cancellationToken)
-    {
-        return TryFindUnambiguousAsync(stream, cancellationToken, FileByteType.Strict);
-    }
-
-    /// <inheritdoc />
     public async Task<IFileType?> TryFindUnambiguousAsync(
         Stream stream,
         CancellationToken cancellationToken,
-        FileByteType validationType)
+        FileByteType validationType = FileByteType.Strict)
     {
-        var closeMatches = (await FindCloseMatchesAsync(stream, cancellationToken, validationType)).ToList();
+        var closeMatches = await FindCloseMatchesAsync(stream, cancellationToken, validationType);
 
         return closeMatches.Count == 1 ? closeMatches[0] : null;
     }

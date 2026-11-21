@@ -10,13 +10,15 @@ public interface IMapping
     /// <summary>
     /// Tries to find a known <see cref="IFileType"/> by given MIME type.
     /// </summary>
-    /// <exception cref="ArgumentEmptyException">When given MIME type is null or empty</exception>
+    /// <exception cref="ArgumentNullException">When given MIME type is null</exception>
+    /// <exception cref="ArgumentEmptyException">When given MIME type is empty</exception>
     IFileType? FindByMimeType(string mimeType);
 
     /// <summary>
     /// Tries to find a known <see cref="IFileType"/> by given file extension.
     /// </summary>
-    /// <exception cref="ArgumentEmptyException">When given file extension is null or empty</exception>
+    /// <exception cref="ArgumentNullException">When given file extension is null</exception>
+    /// <exception cref="ArgumentEmptyException">When given file extension is empty</exception>
     IFileType? FindByExtension(string extension);
 
     /// <summary>

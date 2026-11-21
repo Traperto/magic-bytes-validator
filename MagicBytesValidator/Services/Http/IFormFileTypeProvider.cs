@@ -8,18 +8,7 @@ public interface IFormFileTypeProvider
    /// <summary>
    /// Mapping that is used for providing information
    /// </summary>
-   /// <remarks>Will be typed as <see cref="IMapping"/> in version 3.0.</remarks>
-   Mapping Mapping { get; }
-
-   /// <summary>
-   /// Tries to find matching FileType for given IFormFile.
-   /// </summary>
-   /// <exception cref="MimeTypeMismatchException">
-   /// When file-type by extension and given content-type (IFormFile.ContentType) differ.
-   /// In this case, someone <i>could</i> try to circumvent the validation.
-   /// </exception>
-   [Obsolete("Use FindValidatedTypeAsync instead. FindFileTypeForFormFile will be removed in version 3.0.")]
-   IFileType? FindFileTypeForFormFile(IFormFile formFile);
+   IMapping Mapping { get; }
 
    /// <summary>
    /// Tries to find matching <see cref="IFileType"/> for given <see cref="IFormFile"/> that also matches

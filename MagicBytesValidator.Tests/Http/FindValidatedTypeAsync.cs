@@ -5,7 +5,7 @@ public class FindValidatedTypeAsync
     [Fact]
     public async Task Should_find_by_extension()
     {
-        var formFile = ProvideGifFile("trp.gif", "image/gif");
+        var formFile = ProvideGifFile("test.gif", "image/gif");
 
         var sut = new FormFileTypeProvider();
 
@@ -37,7 +37,7 @@ public class FindValidatedTypeAsync
     [Fact]
     public async Task Should_return_null_on_not_found()
     {
-        var formFile = ProvideGifFile(string.Empty, "trp/crly");
+        var formFile = ProvideGifFile(string.Empty, "unknown/type");
 
         var sut = new FormFileTypeProvider();
 
@@ -53,7 +53,7 @@ public class FindValidatedTypeAsync
     [Fact]
     public async Task Should_ignore_trailing_extension_separator()
     {
-        var formFile = ProvideGifFile("trp.", "image/gif");
+        var formFile = ProvideGifFile("test.", "image/gif");
 
         var sut = new FormFileTypeProvider();
 
@@ -69,7 +69,7 @@ public class FindValidatedTypeAsync
     [Fact]
     public async Task Should_ignore_content_type_parameters()
     {
-        var formFile = ProvideGifFile("trp.gif", "image/gif; charset=binary");
+        var formFile = ProvideGifFile("test.gif", "image/gif; charset=binary");
 
         var sut = new FormFileTypeProvider();
 
@@ -85,7 +85,7 @@ public class FindValidatedTypeAsync
     [Fact]
     public async Task Should_return_null_on_missing_content_type()
     {
-        var formFile = ProvideGifFile("trp.gif", string.Empty);
+        var formFile = ProvideGifFile("test.gif", string.Empty);
 
         var sut = new FormFileTypeProvider();
 
@@ -117,7 +117,7 @@ public class FindValidatedTypeAsync
     [Fact]
     public async Task Should_throw_on_type_vs_name_mismatch()
     {
-        var formFile = ProvideGifFile("trp.gif", "image/png");
+        var formFile = ProvideGifFile("test.gif", "image/png");
 
         var sut = new FormFileTypeProvider();
 
@@ -133,7 +133,7 @@ public class FindValidatedTypeAsync
     [Fact]
     public async Task Should_throw_on_type_vs_content_mismatch()
     {
-        var formFile = ProvideGifFile("trp.png", "image/png");
+        var formFile = ProvideGifFile("test.png", "image/png");
 
         var sut = new FormFileTypeProvider();
 

@@ -3,11 +3,22 @@ namespace MagicBytesValidator.Tests.Models;
 public class FileByteFilterImmutability
 {
     [Fact]
+    public void Should_freeze_on_first_match()
+    {
+        var fileType = new TestFileType().StartsWith([0x01]);
+        Assert.False(fileType.IsFrozen);
+
+        _ = fileType.Matches([0x01]);
+
+        Assert.True(fileType.IsFrozen);
+        Assert.Throws<InvalidOperationException>(() => fileType.EndsWith([0x02]));
+    }
+
+    [Fact]
     public void Should_reject_all_configuration_after_freeze()
     {
         var fileType = new TestFileType().Freeze();
 
-        Assert.True(fileType.IsFrozen);
         Assert.Throws<InvalidOperationException>(() => fileType.StartsWith([0x01]));
         Assert.Throws<InvalidOperationException>(() => fileType.StartsWithAnyOf([[0x01]]));
         Assert.Throws<InvalidOperationException>(() => fileType.EndsWith([0x01]));
@@ -23,30 +34,51 @@ public class FileByteFilterImmutability
     }
 
     [Fact]
-    public void Should_still_match_after_freeze()
+    public void Should_copy_byte_patterns()
     {
-        var fileType = new TestFileType().StartsWith([0x01]).Freeze();
+        byte?[] pattern = [0x01, 0x02];
+        var fileType = new TestFileType().StartsWith(pattern);
 
-        Assert.True(fileType.Matches([0x01]));
-        Assert.False(fileType.Matches([0x02]));
+        pattern[0] = 0xFF;
+
+        Assert.True(fileType.Matches([0x01, 0x02]));
+        Assert.False(fileType.Matches([0xFF, 0x02]));
     }
 
     [Fact]
-    public void Should_not_freeze_implicitly()
+    public void Should_copy_byte_check_bytes()
     {
-        var fileType = new TestFileType().StartsWith([0x01]);
+        byte?[] pattern = [0x01, 0x02];
+        var byteCheck = new FileByteFilter.ByteCheck(0, pattern);
 
-        _ = fileType.Matches([0x01]);
+        pattern[0] = 0xFF;
 
-        Assert.False(fileType.IsFrozen);
+        Assert.Equal([0x01, 0x02], byteCheck.Bytes);
     }
 
     [Fact]
-    public void Should_expose_byte_check_bytes()
+    public void Should_copy_mime_types_and_extensions()
     {
-        var byteCheck = new FileByteFilter.ByteCheck(-2, [0x01, null]);
+        string[] mimeTypes = ["application/x-test"];
+        string[] extensions = ["test"];
+        var fileType = new TestFileType(mimeTypes, extensions);
 
-        Assert.Equal(-2, byteCheck.Offset);
-        Assert.Equal([0x01, null], byteCheck.Bytes);
+        mimeTypes[0] = "changed/type";
+        extensions[0] = "changed";
+
+        Assert.Equal(["application/x-test"], fileType.MimeTypes);
+        Assert.Equal(["test"], fileType.Extensions);
+    }
+
+    [Fact]
+    public void Should_not_allow_modifying_mime_types_and_extensions()
+    {
+        var fileType = new TestFileType(["application/x-test"], ["test"]);
+
+        var mimeTypes = Assert.IsAssignableFrom<IList<string>>(fileType.MimeTypes);
+        var extensions = Assert.IsAssignableFrom<IList<string>>(fileType.Extensions);
+
+        Assert.Throws<NotSupportedException>(() => mimeTypes[0] = "changed/type");
+        Assert.Throws<NotSupportedException>(() => extensions[0] = "changed");
     }
 }

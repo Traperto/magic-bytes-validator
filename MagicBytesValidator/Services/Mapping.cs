@@ -17,7 +17,8 @@ public class Mapping : IMapping
     /// <inheritdoc />
     public IFileType? FindByMimeType(string mimeType)
     {
-        if (string.IsNullOrEmpty(mimeType))
+        ArgumentNullException.ThrowIfNull(mimeType);
+        if (mimeType.Length == 0)
         {
             throw new ArgumentEmptyException(nameof(mimeType));
         }
@@ -30,7 +31,8 @@ public class Mapping : IMapping
     /// <inheritdoc />
     public IFileType? FindByExtension(string extension)
     {
-        if (string.IsNullOrEmpty(extension))
+        ArgumentNullException.ThrowIfNull(extension);
+        if (extension.Length == 0)
         {
             throw new ArgumentEmptyException(nameof(extension));
         }

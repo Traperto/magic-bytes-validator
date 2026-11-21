@@ -4,9 +4,9 @@ namespace MagicBytesValidator.Models;
 /// Base class for file types that are identified by magic byte checks, configured via the fluent methods.
 /// </summary>
 /// <remarks>
-/// Configure a filter completely (e.g. in its constructor) before using it. <see cref="Freeze"/> prevents any
-/// further changes, so a frozen filter can safely be shared between threads.
-/// Starting with version 3.0, a filter is frozen automatically when it is used for the first time.
+/// A filter is frozen when it is used for the first time (see <see cref="Matches"/>) or when <see cref="Freeze"/>
+/// is called. Afterwards its checks can't be changed anymore, so a filter can safely be shared between threads.
+/// Configure a filter completely (e.g. in its constructor) before using it.
 /// </remarks>
 public abstract class FileByteFilter : IFileType
 {
@@ -16,67 +16,76 @@ public abstract class FileByteFilter : IFileType
 
    private volatile bool _isFrozen;
 
+   /// <inheritdoc />
+   public IReadOnlyList<string> MimeTypes { get; }
+
+   /// <inheritdoc />
+   public IReadOnlyList<string> Extensions { get; }
+
    /// <summary>
-   /// Whether the checks of this filter can't be changed anymore, see <see cref="Freeze"/>.
+   /// Whether the checks of this filter can't be changed anymore.
    /// </summary>
    public bool IsFrozen => _isFrozen;
-
-   public string[] MimeTypes { get; }
-   public string[] Extensions { get; }
 
    protected FileByteFilter(
       string[] mimeTypes,
       string[] extensions)
    {
-      if (!mimeTypes.Any() || mimeTypes.Any(string.IsNullOrEmpty))
+      ArgumentNullException.ThrowIfNull(mimeTypes);
+      ArgumentNullException.ThrowIfNull(extensions);
+
+      if (mimeTypes.Length == 0 || mimeTypes.Any(string.IsNullOrEmpty))
       {
-         throw new ArgumentEmptyException($"{nameof(mimeTypes)} cannot be null or empty");
+         throw new ArgumentEmptyException(nameof(mimeTypes));
       }
 
-      if (!extensions.Any() || extensions.Any(string.IsNullOrEmpty))
+      if (extensions.Length == 0 || extensions.Any(string.IsNullOrEmpty))
       {
-         throw new ArgumentEmptyException($"{nameof(extensions)} cannot be null or empty");
+         throw new ArgumentEmptyException(nameof(extensions));
       }
 
-      MimeTypes = mimeTypes;
-      Extensions = extensions;
+      MimeTypes = Array.AsReadOnly(mimeTypes.ToArray());
+      Extensions = Array.AsReadOnly(extensions.ToArray());
    }
 
    /// <summary>
    /// Checks the given bytes at a fixed offset. A negative offset counts from the end of the file,
-   /// e.g. an offset of -4 starts at the fourth to last byte.
+   /// e.g. an offset of -4 starts at the fourth to last byte. <c>null</c> bytes act as wildcards.
    /// </summary>
-   public class ByteCheck(int offset, byte?[] bytesToCheck)
+   public sealed class ByteCheck
    {
       /// <summary>
       /// Offset of the first byte to check. Negative values count from the end of the file.
       /// </summary>
-      public readonly int Offset = offset;
+      public int Offset { get; }
 
       /// <summary>
       /// Expected bytes, <c>null</c> matches any byte.
       /// </summary>
-      [Obsolete("Use Bytes instead. ByteArray will be removed in version 3.0.")]
-      public readonly byte?[] ByteArray = bytesToCheck;
+      public IReadOnlyList<byte?> Bytes { get; }
 
-      /// <summary>
-      /// Expected bytes, <c>null</c> matches any byte.
-      /// </summary>
-      public IReadOnlyList<byte?> Bytes { get; } = Array.AsReadOnly(bytesToCheck);
+      internal byte?[] Pattern { get; }
 
-      internal byte?[] Pattern { get; } = bytesToCheck;
+      public ByteCheck(int offset, byte?[] bytesToCheck)
+      {
+         ArgumentNullException.ThrowIfNull(bytesToCheck);
+
+         Offset = offset;
+         Pattern = bytesToCheck.ToArray();
+         Bytes = Array.AsReadOnly(Pattern);
+      }
    }
 
    private sealed class TailContainsCheck(int lastNBytes, byte?[] pattern)
    {
       public int LastNBytes { get; } = lastNBytes;
-      public byte?[] Pattern { get; } = pattern;
+      public byte?[] Pattern { get; } = pattern.ToArray();
    }
 
    private sealed class EndsWithIgnoringTrailingCheck(byte?[] pattern, byte[] ignoredTrailingBytes)
    {
-      public byte?[] Pattern { get; } = pattern;
-      public byte[] IgnoredTrailingBytes { get; } = ignoredTrailingBytes;
+      public byte?[] Pattern { get; } = pattern.ToArray();
+      public byte[] IgnoredTrailingBytes { get; } = ignoredTrailingBytes.ToArray();
    }
 
    private sealed class FileByteCheck
@@ -109,11 +118,15 @@ public abstract class FileByteFilter : IFileType
       }
    }
 
+   /// <inheritdoc />
+   /// <remarks>Freezes the filter, see <see cref="Freeze"/>.</remarks>
    public bool Matches(
       byte[] fileByteStream,
       FileByteType type = FileByteType.Strict)
    {
       ArgumentNullException.ThrowIfNull(fileByteStream);
+
+      Freeze();
 
       // Basic rules must always match; then type-specific rules.
       return _baseFileByteChecks.Matches(fileByteStream)
@@ -202,7 +215,7 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-      ChecksToConfigure(type).Anywhere.Add(bytesToCheck);
+      ChecksToConfigure(type).Anywhere.Add(bytesToCheck.ToArray());
       return this;
    }
 
@@ -231,12 +244,12 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(streamNames);
 
-      if (!streamNames.Any() || streamNames.Any(string.IsNullOrEmpty))
+      if (streamNames.Length == 0 || streamNames.Any(string.IsNullOrEmpty))
       {
-         throw new ArgumentEmptyException($"{nameof(streamNames)} cannot be null or empty");
+         throw new ArgumentEmptyException(nameof(streamNames));
       }
 
-      ChecksToConfigure(type).CompoundFileStreamAnyOf.Add(streamNames);
+      ChecksToConfigure(type).CompoundFileStreamAnyOf.Add(streamNames.ToArray());
       return this;
    }
 
@@ -272,12 +285,15 @@ public abstract class FileByteFilter : IFileType
    }
 
    /// <summary>
-   /// Prevents any further changes to the checks of this filter. Further configuration throws an
-   /// <see cref="InvalidOperationException"/>. Starting with version 3.0, this is called automatically on first use.
+   /// Prevents any further changes to the checks of this filter. Called automatically on first use.
    /// </summary>
    public FileByteFilter Freeze()
    {
-      _isFrozen = true;
+      if (!_isFrozen)
+      {
+         _isFrozen = true;
+      }
+
       return this;
    }
 
@@ -285,7 +301,8 @@ public abstract class FileByteFilter : IFileType
    {
       if (_isFrozen)
       {
-         throw new InvalidOperationException($"{GetType().Name} is frozen and can't be changed anymore.");
+         throw new InvalidOperationException(
+            $"{GetType().Name} is frozen and can't be changed anymore, as it has already been used.");
       }
 
       return GetChecksByType(type);
