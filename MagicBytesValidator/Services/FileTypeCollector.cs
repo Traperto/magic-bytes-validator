@@ -2,19 +2,13 @@ namespace MagicBytesValidator.Services;
 
 public static class FileTypeCollector
 {
-    [Obsolete("Use CollectFileTypesForAssembly instead.")]
-    public static IEnumerable<IFileType> CollectFileTypes(Assembly? assembly = null)
-    {
-        assembly ??= typeof(Mapping).GetTypeInfo().Assembly;
-        return CollectFileTypesForAssembly(assembly);
-    }
-
+    /// <summary>
+    /// Creates an instance of every non-abstract <see cref="IFileType"/> with a parameterless constructor
+    /// in the given assembly.
+    /// </summary>
     public static IEnumerable<IFileType> CollectFileTypesForAssembly(Assembly assembly)
     {
-        if (assembly is null)
-        {
-            throw new ArgumentEmptyException(nameof(assembly));
-        }
+        ArgumentNullException.ThrowIfNull(assembly);
 
         return assembly.GetTypes()
             .Where(t => typeof(IFileType).IsAssignableFrom(t))

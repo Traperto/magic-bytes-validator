@@ -162,7 +162,7 @@ public class DocXlsDisambiguationTests
         Assert.Throws<MagicBytesValidator.Exceptions.ArgumentEmptyException>(() => new StreamNameFilter([]));
     }
 
-    private static Task<IEnumerable<IFileType>> FindCloseMatchesAsync(Stream stream)
+    private static Task<IReadOnlyList<IFileType>> FindCloseMatchesAsync(Stream stream)
     {
         return new StreamFileTypeProvider(new Mapping()).FindCloseMatchesAsync(stream, CancellationToken.None);
     }
