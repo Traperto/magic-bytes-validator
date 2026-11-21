@@ -2,7 +2,7 @@ namespace MagicBytesValidator.Services;
 
 public static class FileTypeCollector
 {
-    [Obsolete("Use CollectFileTypesForAssembly instead.")]
+    [Obsolete("Use CollectFileTypesForAssembly or Mapping.Register(assembly) instead. CollectFileTypes will be removed in version 3.0.")]
     public static IEnumerable<IFileType> CollectFileTypes(Assembly? assembly = null)
     {
         assembly ??= typeof(Mapping).GetTypeInfo().Assembly;

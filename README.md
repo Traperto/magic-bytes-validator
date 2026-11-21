@@ -5,20 +5,33 @@ The existing file types can be expanded in various ways.
 
 ### How to install
 
-- Install nuget package into your project:
 
 ```powershell
-Install-Package MagicBytesValidator -Version 2.5.0
+Install-Package MagicBytesValidator -Version 2.6.0
 ```
 
 ```bash
-dotnet add package MagicBytesValidator --version 2.5.0
+dotnet add package MagicBytesValidator --version 2.6.0
 ```
 
-- Reference in your csproj:
+Or reference it in your csproj:
 ```xml
-<PackageReference Include="MagicBytesValidator" Version="2.5.0" />
+<PackageReference Include="MagicBytesValidator" Version="2.6.0" />
 ```
+
+### Register in ASP.NET Core
+
+```c#
+using MagicBytesValidator;
+
+builder.Services.AddMagicBytesValidator();
+
+// or with custom file types:
+builder.Services.AddMagicBytesValidator(mapping => mapping.Register(new CustomType()));
+```
+
+This registers `IMapping`, `IValidator`, `IStreamFileTypeProvider` and `IFormFileTypeProvider` as singletons
+that share the same mapping.
 
 ### How to use
 
@@ -52,9 +65,7 @@ dotnet add package MagicBytesValidator --version 2.5.0
 - Determine the file type of a stream by its content only:
 
   ```c#
-  var streamFileTypeProvider = new MagicBytesValidator.Services.Streams.StreamFileTypeProvider(
-      new MagicBytesValidator.Services.Mapping()
-  );
+  var streamFileTypeProvider = new MagicBytesValidator.Services.Streams.StreamFileTypeProvider();
   var fileType = await streamFileTypeProvider.TryFindUnambiguousAsync(fileStream, CancellationToken.None);
 
   if (fileType is not null) {
@@ -132,6 +143,9 @@ var isValid = await validator.IsValidAsync(
 );
 ```
 
+The methods of `StreamFileTypeProvider` (`FindAllMatchesAsync`, `FindCloseMatchesAsync` and
+`TryFindUnambiguousAsync`) accept the same optional `validationType` parameter.
+
 > Note: If a format does not define any `Lazy`-specific checks, `Lazy` behaves like “global checks only”.
 > This keeps existing formats unchanged unless they opt into mode-specific rules.
 
@@ -196,6 +210,11 @@ followed by a ZIP comment of up to 65535 bytes (as e.g. written by Aspose.Cells)
 A `ByteCheck` with a negative offset counts from the end of the file, e.g. `new ByteCheck(-4, [0xFD])` expects
 `0xFD` at the fourth to last byte.
 Byte sequences may contain `null` as a wildcard for a single arbitrary byte.
+
+Configure your types completely in their constructor. `Freeze()` prevents any further changes to the checks of a
+`FileByteFilter` (further configuration throws an `InvalidOperationException`), so frozen filters can safely be
+used from multiple threads. Starting with version 3.0, a `FileByteFilter` is frozen automatically when it is used
+for the first time.
 
 ### Optional: register mode-specific magic byte checks (Strict/Lazy)
 

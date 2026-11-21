@@ -8,6 +8,7 @@ public interface IFormFileTypeProvider
    /// <summary>
    /// Mapping that is used for providing information
    /// </summary>
+   /// <remarks>Will be typed as <see cref="IMapping"/> in version 3.0.</remarks>
    Mapping Mapping { get; }
 
    /// <summary>
@@ -17,7 +18,7 @@ public interface IFormFileTypeProvider
    /// When file-type by extension and given content-type (IFormFile.ContentType) differ.
    /// In this case, someone <i>could</i> try to circumvent the validation.
    /// </exception>
-   [Obsolete("Use FindValidatedType instead.")]
+   [Obsolete("Use FindValidatedTypeAsync instead. FindFileTypeForFormFile will be removed in version 3.0.")]
    IFileType? FindFileTypeForFormFile(IFormFile formFile);
 
    /// <summary>

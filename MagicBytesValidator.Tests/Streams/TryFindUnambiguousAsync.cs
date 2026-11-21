@@ -185,4 +185,29 @@ public class TryFindUnambiguousAsync
 
         Assert.IsType<Tsv>(result);
     }
+
+    [Fact]
+    public async Task Should_use_given_validation_type()
+    {
+        var sut = new StreamFileTypeProvider(new Mapping());
+
+        /* PDF with trailing bytes after %%EOF: only valid with lazy rules */
+        var pdf = "%PDF-1.7\n%%EOF\ntrailing"u8.ToArray();
+
+        Assert.Null(await sut.TryFindUnambiguousAsync(new MemoryStream(pdf), CancellationToken.None));
+        Assert.IsType<Pdf>(
+            await sut.TryFindUnambiguousAsync(new MemoryStream(pdf), CancellationToken.None, FileByteType.Lazy));
+    }
+
+    [Fact]
+    public async Task Should_use_default_mapping()
+    {
+        var sut = new StreamFileTypeProvider();
+
+        var result = await sut.TryFindUnambiguousAsync(
+            new MemoryStream([0x47, 0x49, 0x46, 0x38, 0x39, 0x61]),
+            CancellationToken.None);
+
+        Assert.IsType<Gif>(result);
+    }
 }

@@ -20,7 +20,7 @@ public class FormFileTypeProvider : IFormFileTypeProvider
    }
 
    /// <inheritdoc />
-   [Obsolete("Use FindValidatedType instead.")]
+   [Obsolete("Use FindValidatedTypeAsync instead. FindFileTypeForFormFile will be removed in version 3.0.")]
    public IFileType? FindFileTypeForFormFile(IFormFile formFile)
    {
       /* If the form file has a file name with an extension, we'll try to find the fileType by it first.

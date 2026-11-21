@@ -1,10 +1,25 @@
 namespace MagicBytesValidator.Models;
 
+/// <summary>
+/// Base class for file types that are identified by magic byte checks, configured via the fluent methods.
+/// </summary>
+/// <remarks>
+/// Configure a filter completely (e.g. in its constructor) before using it. <see cref="Freeze"/> prevents any
+/// further changes, so a frozen filter can safely be shared between threads.
+/// Starting with version 3.0, a filter is frozen automatically when it is used for the first time.
+/// </remarks>
 public abstract class FileByteFilter : IFileType
 {
    private readonly FileByteCheck _baseFileByteChecks = new();
    private readonly FileByteCheck _strictFileByteChecks = new();
    private readonly FileByteCheck _lazyFileByteChecks = new();
+
+   private volatile bool _isFrozen;
+
+   /// <summary>
+   /// Whether the checks of this filter can't be changed anymore, see <see cref="Freeze"/>.
+   /// </summary>
+   public bool IsFrozen => _isFrozen;
 
    public string[] MimeTypes { get; }
    public string[] Extensions { get; }
@@ -33,8 +48,23 @@ public abstract class FileByteFilter : IFileType
    /// </summary>
    public class ByteCheck(int offset, byte?[] bytesToCheck)
    {
+      /// <summary>
+      /// Offset of the first byte to check. Negative values count from the end of the file.
+      /// </summary>
       public readonly int Offset = offset;
+
+      /// <summary>
+      /// Expected bytes, <c>null</c> matches any byte.
+      /// </summary>
+      [Obsolete("Use Bytes instead. ByteArray will be removed in version 3.0.")]
       public readonly byte?[] ByteArray = bytesToCheck;
+
+      /// <summary>
+      /// Expected bytes, <c>null</c> matches any byte.
+      /// </summary>
+      public IReadOnlyList<byte?> Bytes { get; } = Array.AsReadOnly(bytesToCheck);
+
+      internal byte?[] Pattern { get; } = bytesToCheck;
    }
 
    private sealed class TailContainsCheck(int lastNBytes, byte?[] pattern)
@@ -96,7 +126,7 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-      GetChecksByType(type).Needed.Add(new ByteCheck(0, bytesToCheck));
+      ChecksToConfigure(type).Needed.Add(new ByteCheck(0, bytesToCheck));
       return this;
    }
 
@@ -106,7 +136,7 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-      GetChecksByType(type)
+      ChecksToConfigure(type)
          .AnyOf
          .Add(bytesToCheck.Select(byteArray => new ByteCheck(0, byteArray)).ToArray());
 
@@ -119,7 +149,7 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-      GetChecksByType(type).Needed.Add(new ByteCheck(-bytesToCheck.Length, bytesToCheck));
+      ChecksToConfigure(type).Needed.Add(new ByteCheck(-bytesToCheck.Length, bytesToCheck));
       return this;
    }
 
@@ -129,7 +159,7 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-      GetChecksByType(type)
+      ChecksToConfigure(type)
          .AnyOf
          .Add(bytesToCheck.Select(byteArray => new ByteCheck(-byteArray.Length, byteArray)).ToArray());
 
@@ -148,7 +178,7 @@ public abstract class FileByteFilter : IFileType
       ArgumentNullException.ThrowIfNull(bytesToCheck);
       ArgumentNullException.ThrowIfNull(ignoredTrailingBytes);
 
-      GetChecksByType(type)
+      ChecksToConfigure(type)
          .EndsWithIgnoringTrailing
          .Add(new EndsWithIgnoringTrailingCheck(bytesToCheck, ignoredTrailingBytes));
 
@@ -162,7 +192,7 @@ public abstract class FileByteFilter : IFileType
    /// </summary>
    public FileByteFilter EndsWithZipEndOfCentralDirectory(FileByteType? type = null)
    {
-      GetChecksByType(type).ZipEndOfCentralDirectory = true;
+      ChecksToConfigure(type).ZipEndOfCentralDirectory = true;
       return this;
    }
 
@@ -172,7 +202,7 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-      GetChecksByType(type).Anywhere.Add(bytesToCheck);
+      ChecksToConfigure(type).Anywhere.Add(bytesToCheck);
       return this;
    }
 
@@ -206,7 +236,7 @@ public abstract class FileByteFilter : IFileType
          throw new ArgumentEmptyException($"{nameof(streamNames)} cannot be null or empty");
       }
 
-      GetChecksByType(type).CompoundFileStreamAnyOf.Add(streamNames);
+      ChecksToConfigure(type).CompoundFileStreamAnyOf.Add(streamNames);
       return this;
    }
 
@@ -216,7 +246,7 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-      GetChecksByType(type).Needed.Add(bytesToCheck);
+      ChecksToConfigure(type).Needed.Add(bytesToCheck);
       return this;
    }
 
@@ -226,7 +256,7 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-      GetChecksByType(type).AnyOf.Add(bytesToCheck.ToArray());
+      ChecksToConfigure(type).AnyOf.Add(bytesToCheck.ToArray());
       return this;
    }
 
@@ -237,8 +267,28 @@ public abstract class FileByteFilter : IFileType
    {
       ArgumentNullException.ThrowIfNull(bytesToCheck);
 
-      GetChecksByType(type).TailContains.Add(new TailContainsCheck(lastNBytes, bytesToCheck));
+      ChecksToConfigure(type).TailContains.Add(new TailContainsCheck(lastNBytes, bytesToCheck));
       return this;
+   }
+
+   /// <summary>
+   /// Prevents any further changes to the checks of this filter. Further configuration throws an
+   /// <see cref="InvalidOperationException"/>. Starting with version 3.0, this is called automatically on first use.
+   /// </summary>
+   public FileByteFilter Freeze()
+   {
+      _isFrozen = true;
+      return this;
+   }
+
+   private FileByteCheck ChecksToConfigure(FileByteType? type)
+   {
+      if (_isFrozen)
+      {
+         throw new InvalidOperationException($"{GetType().Name} is frozen and can't be changed anymore.");
+      }
+
+      return GetChecksByType(type);
    }
 
    private FileByteCheck GetChecksByType(FileByteType? type)
@@ -258,14 +308,14 @@ public abstract class FileByteFilter : IFileType
          ? byteToCheck.Offset
          : fileStreamToCheck.Length + byteToCheck.Offset;
 
-      if (offset < 0 || fileStreamToCheck.Length - offset < byteToCheck.ByteArray.Length)
+      if (offset < 0 || fileStreamToCheck.Length - offset < byteToCheck.Pattern.Length)
       {
          return false;
       }
 
-      for (var index = 0; index < byteToCheck.ByteArray.Length; index++)
+      for (var index = 0; index < byteToCheck.Pattern.Length; index++)
       {
-         var expected = byteToCheck.ByteArray[index];
+         var expected = byteToCheck.Pattern[index];
 
          if (expected.HasValue && fileStreamToCheck[offset + index] != expected.Value)
          {

@@ -5,6 +5,7 @@ public interface IValidator
     /// <summary>
     /// Mapping that is used during validation
     /// </summary>
+    /// <remarks>Will be typed as <see cref="IMapping"/> in version 3.0.</remarks>
     Mapping Mapping { get; }
 
     /// <summary>
